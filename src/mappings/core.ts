@@ -548,15 +548,13 @@ export function handleCollect(event: CollectEvent): void {
   factory.totalValueLockedETH = factory.totalValueLockedETH.plus(pool.totalValueLockedETH)
   factory.totalValueLockedUSD = factory.totalValueLockedETH.times(bundle.ethPriceUSD)
 
-  let collectID = event.transaction.hash
-    .toString()
-    .concat('-')
-    .concat(event.logIndex.toString())
-  let collect = new Collect(collectID)
+
+  let collect = new Collect(transaction.id + '#' + pool.txCount.toString())
   collect.transaction = transaction.id
-  collect.timestamp = event.block.timestamp
+  collect.timestamp = transaction.timestamp
   collect.pool = pool.id
   collect.owner = event.params.owner
+  collect.origin = event.transaction.from
   collect.amount0 = amount0
   collect.amount1 = amount1
   collect.amountUSD = amountUSD

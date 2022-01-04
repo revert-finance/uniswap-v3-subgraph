@@ -400,6 +400,8 @@ type Collect @entity {
   pool: Pool!
   # owner of position collect was performed on
   owner: Bytes
+  # txn origin
+  origin: Bytes! # the EOA that initiated the txn
   # amount of token0 collected
   amount0: BigDecimal!
   # amount of token1 collected
