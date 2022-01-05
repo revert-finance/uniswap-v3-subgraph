@@ -5,7 +5,7 @@ import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 
 const WETH_ADDRESS = '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619'
-const USDC_WETH_03_POOL = '0x0e44ceb592acfc5d3f09d996302eb4c499ff8c10'
+export const USDC_WETH_03_POOL = '0x0e44ceb592acfc5d3f09d996302eb4c499ff8c10'
 
 // token where amounts should contribute to tracked volume and liquidity
 // usually tokens that many tokens are paired with s
@@ -13,11 +13,17 @@ export let WHITELIST_TOKENS: string[] = [
   WETH_ADDRESS, // WETH
   '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270', // WMATIC
   '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC
-  '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063' // DAI
+  '0xc2132d05d31c914a87c6611c10748aeb04b58e8f', // USDT
+  '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063', // DAI
+  '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6', // WBTC
 ]
 
-let STABLE_COINS: string[] = ['0x2791bca1f2de4661ed88a30c99a7a9449aa84174']
-let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.5')
+let STABLE_COINS: string[] = [
+  '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC
+  '0xc2132d05d31c914a87c6611c10748aeb04b58e8f', // USDT
+  '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063'] // DAI
+  
+let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.001')
 
 let Q192 = 2 ** 192
 export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, token1: Token): BigDecimal[] {
@@ -29,15 +35,6 @@ export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, t
     .div(exponentToBigDecimal(token1.decimals))
   let price0 = safeDiv(BigDecimal.fromString('1'), price1)
   return [price0, price1]
-}
-
-export function getEthPriceInUSD(): BigDecimal {
-  let usdcPool = Pool.load(USDC_WETH_03_POOL)
-  if (usdcPool !== null) {
-    return usdcPool.token0Price
-  } else {
-    return ZERO_BD
-  }
 }
 
 /**
