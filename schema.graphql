@@ -292,39 +292,6 @@ type Burn @entity {
   logIndex: BigInt
 }
 
-type Swap @entity {
-  # transaction hash + "#" + index in swaps Transaction array
-  id: ID!
-  # pointer to transaction
-  transaction: Transaction!
-  # timestamp of transaction
-  timestamp: BigInt!
-  # pool swap occured within
-  pool: Pool!
-  # allow indexing by tokens
-  token0: Token!
-  # allow indexing by tokens
-  token1: Token!
-  # sender of the swap
-  sender: Bytes!
-  # recipient of the swap
-  recipient: Bytes!
-  # txn origin
-  origin: Bytes! # the EOA that initiated the txn
-  # delta of token0 swapped
-  amount0: BigDecimal!
-  # delta of token1 swapped
-  amount1: BigDecimal!
-  # derived info
-  amountUSD: BigDecimal!
-  # The sqrt(price) of the pool after the swap, as a Q64.96
-  sqrtPriceX96: BigInt!
-  # the tick after the swap
-  tick: BigInt!
-  # index within the txn
-  logIndex: BigInt
-}
-
 type Collect @entity {
   # transaction hash + "#" + index in collect Transaction array
   id: ID!
