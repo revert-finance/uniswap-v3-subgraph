@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import { Bundle, Burn, Collect, Factory, Mint, Pool, Swap, Token } from '../types/schema'
+import { Bundle, Burn, Collect, Factory, Mint, Pool, Token } from '../types/schema'
 import { Pool as PoolABI } from '../types/Factory/Pool'
 import { BigDecimal, BigInt, ethereum } from '@graphprotocol/graph-ts'
 import {
@@ -308,26 +308,6 @@ export function handleSwap(event: SwapEvent): void {
   token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedETH).times(bundle.ethPriceUSD)
   token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedETH).times(bundle.ethPriceUSD)
 
-  // create Swap event
-  let transaction = loadTransaction(event)
-  let swap = new Swap(transaction.id + '#' + pool.txCount.toString())
-  swap.transaction = transaction.id
-  swap.timestamp = transaction.timestamp
-  swap.pool = pool.id
-  swap.token0 = pool.token0
-  swap.token1 = pool.token1
-  swap.sender = event.params.sender
-  swap.origin = event.transaction.from
-  swap.recipient = event.params.recipient
-  swap.amount0 = amount0
-  swap.amount1 = amount1
-  swap.amountUSD = amountTotalUSDTracked
-  swap.tick = BigInt.fromI32(event.params.tick as i32)
-  swap.sqrtPriceX96 = event.params.sqrtPriceX96
-  swap.logIndex = event.logIndex
-
- 
-  swap.save()
   factory.save()
   pool.save()
   token0.save()

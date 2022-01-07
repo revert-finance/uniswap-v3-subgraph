@@ -128,7 +128,6 @@ type Pool @entity {
   # derived fields
   mints: [Mint!]! @derivedFrom(field: "pool")
   burns: [Burn!]! @derivedFrom(field: "pool")
-  swaps: [Swap!]! @derivedFrom(field: "pool")
   collects: [Collect!]! @derivedFrom(field: "pool")
 }
 
@@ -220,7 +219,6 @@ type Transaction @entity {
   # derived values
   mints: [Mint]! @derivedFrom(field: "transaction")
   burns: [Burn]! @derivedFrom(field: "transaction")
-  swaps: [Swap]! @derivedFrom(field: "transaction")
   collects: [Collect]! @derivedFrom(field: "transaction")
 }
 
@@ -289,39 +287,6 @@ type Burn @entity {
   # upper tick of position
   tickUpper: BigInt!
   # position within the transactions
-  logIndex: BigInt
-}
-
-type Swap @entity {
-  # transaction hash + "#" + index in swaps Transaction array
-  id: ID!
-  # pointer to transaction
-  transaction: Transaction!
-  # timestamp of transaction
-  timestamp: BigInt!
-  # pool swap occured within
-  pool: Pool!
-  # allow indexing by tokens
-  token0: Token!
-  # allow indexing by tokens
-  token1: Token!
-  # sender of the swap
-  sender: Bytes!
-  # recipient of the swap
-  recipient: Bytes!
-  # txn origin
-  origin: Bytes! # the EOA that initiated the txn
-  # delta of token0 swapped
-  amount0: BigDecimal!
-  # delta of token1 swapped
-  amount1: BigDecimal!
-  # derived info
-  amountUSD: BigDecimal!
-  # The sqrt(price) of the pool after the swap, as a Q64.96
-  sqrtPriceX96: BigInt!
-  # the tick after the swap
-  tick: BigInt!
-  # index within the txn
   logIndex: BigInt
 }
 
