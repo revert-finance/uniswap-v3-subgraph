@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import { Bundle, Burn, Collect, Factory, Mint, Pool, Swap, Token } from '../types/schema'
+import { Bundle, Burn, Collect, Factory, Mint, Pool, Token } from '../types/schema'
 import { Pool as PoolABI } from '../types/Factory/Pool'
 import { BigDecimal, BigInt, ethereum } from '@graphprotocol/graph-ts'
 import {
