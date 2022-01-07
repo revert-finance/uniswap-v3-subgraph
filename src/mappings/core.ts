@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import { Bundle, Burn, Collect, Factory, Mint, Pool, Swap, Tick, Token } from '../types/schema'
+import { Bundle, Burn, Collect, Factory, Mint, Pool, Swap, Token } from '../types/schema'
 import { Pool as PoolABI } from '../types/Factory/Pool'
 import { BigDecimal, BigInt, ethereum } from '@graphprotocol/graph-ts'
 import {
@@ -13,15 +13,6 @@ import {
 import { convertTokenToDecimal, loadTransaction, safeDiv } from '../utils'
 import { FACTORY_ADDRESS, ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { findEthPerToken, getEthPriceInUSD, getTrackedAmountUSD, sqrtPriceX96ToTokenPrices } from '../utils/pricing'
-import {
-  updatePoolDayData,
-  updatePoolHourData,
-  updateTickDayData,
-  updateTokenDayData,
-  updateTokenHourData,
-  updateUniswapDayData
-} from '../utils/intervalUpdates'
-import { createTick, feeTierToTickSpacing } from '../utils/tick'
 
 export function handleInitialize(event: Initialize): void {
   let pool = Pool.load(event.address.toHexString())
@@ -37,9 +28,6 @@ export function handleInitialize(event: Initialize): void {
   let bundle = Bundle.load('1')
   bundle.ethPriceUSD = getEthPriceInUSD()
   bundle.save()
-
-  updatePoolDayData(event)
-  updatePoolHourData(event)
 
   // update token prices
   token0.derivedETH = findEthPerToken(token0 as Token)
@@ -121,50 +109,11 @@ export function handleMint(event: MintEvent): void {
   mint.tickUpper = BigInt.fromI32(event.params.tickUpper)
   mint.logIndex = event.logIndex
 
-  // tick entities
-  let lowerTickIdx = event.params.tickLower
-  let upperTickIdx = event.params.tickUpper
-
-  let lowerTickId = poolAddress + '#' + BigInt.fromI32(event.params.tickLower).toString()
-  let upperTickId = poolAddress + '#' + BigInt.fromI32(event.params.tickUpper).toString()
-
-  let lowerTick = Tick.load(lowerTickId)
-  let upperTick = Tick.load(upperTickId)
-
-  if (lowerTick === null) {
-    lowerTick = createTick(lowerTickId, lowerTickIdx, pool.id, event)
-  }
-
-  if (upperTick === null) {
-    upperTick = createTick(upperTickId, upperTickIdx, pool.id, event)
-  }
-
-  let amount = event.params.amount
-  lowerTick.liquidityGross = lowerTick.liquidityGross.plus(amount)
-  lowerTick.liquidityNet = lowerTick.liquidityNet.plus(amount)
-  upperTick.liquidityGross = upperTick.liquidityGross.plus(amount)
-  upperTick.liquidityNet = upperTick.liquidityNet.minus(amount)
-
-  // TODO: Update Tick's volume, fees, and liquidity provider count. Computing these on the tick
-  // level requires reimplementing some of the swapping code from v3-core.
-
-  updateUniswapDayData(event)
-  updatePoolDayData(event)
-  updatePoolHourData(event)
-  updateTokenDayData(token0 as Token, event)
-  updateTokenDayData(token1 as Token, event)
-  updateTokenHourData(token0 as Token, event)
-  updateTokenHourData(token1 as Token, event)
-
   token0.save()
   token1.save()
   pool.save()
   factory.save()
   mint.save()
-
-  // Update inner tick vars and save the ticks
-  updateTickFeeVarsAndSave(lowerTick!, event)
-  updateTickFeeVarsAndSave(upperTick!, event)
 }
 
 export function handleBurn(event: BurnEvent): void {
@@ -238,27 +187,6 @@ export function handleBurn(event: BurnEvent): void {
   burn.tickLower = BigInt.fromI32(event.params.tickLower)
   burn.tickUpper = BigInt.fromI32(event.params.tickUpper)
   burn.logIndex = event.logIndex
-
-  // tick entities
-  let lowerTickId = poolAddress + '#' + BigInt.fromI32(event.params.tickLower).toString()
-  let upperTickId = poolAddress + '#' + BigInt.fromI32(event.params.tickUpper).toString()
-  let lowerTick = Tick.load(lowerTickId)
-  let upperTick = Tick.load(upperTickId)
-  let amount = event.params.amount
-  lowerTick.liquidityGross = lowerTick.liquidityGross.minus(amount)
-  lowerTick.liquidityNet = lowerTick.liquidityNet.minus(amount)
-  upperTick.liquidityGross = upperTick.liquidityGross.minus(amount)
-  upperTick.liquidityNet = upperTick.liquidityNet.plus(amount)
-
-  updateUniswapDayData(event)
-  updatePoolDayData(event)
-  updatePoolHourData(event)
-  updateTokenDayData(token0 as Token, event)
-  updateTokenDayData(token1 as Token, event)
-  updateTokenHourData(token0 as Token, event)
-  updateTokenHourData(token1 as Token, event)
-  updateTickFeeVarsAndSave(lowerTick!, event)
-  updateTickFeeVarsAndSave(upperTick!, event)
 
   token0.save()
   token1.save()
@@ -398,113 +326,16 @@ export function handleSwap(event: SwapEvent): void {
   swap.sqrtPriceX96 = event.params.sqrtPriceX96
   swap.logIndex = event.logIndex
 
-  // update fee growth
-  let poolContract = PoolABI.bind(event.address)
-  let feeGrowthGlobal0X128 = poolContract.feeGrowthGlobal0X128()
-  let feeGrowthGlobal1X128 = poolContract.feeGrowthGlobal1X128()
-  pool.feeGrowthGlobal0X128 = feeGrowthGlobal0X128 as BigInt
-  pool.feeGrowthGlobal1X128 = feeGrowthGlobal1X128 as BigInt
-
-  // interval data
-  let uniswapDayData = updateUniswapDayData(event)
-  let poolDayData = updatePoolDayData(event)
-  let poolHourData = updatePoolHourData(event)
-  let token0DayData = updateTokenDayData(token0 as Token, event)
-  let token1DayData = updateTokenDayData(token1 as Token, event)
-  let token0HourData = updateTokenHourData(token0 as Token, event)
-  let token1HourData = updateTokenHourData(token1 as Token, event)
-
-  // update volume metrics
-  uniswapDayData.volumeETH = uniswapDayData.volumeETH.plus(amountTotalETHTracked)
-  uniswapDayData.volumeUSD = uniswapDayData.volumeUSD.plus(amountTotalUSDTracked)
-  uniswapDayData.feesUSD = uniswapDayData.feesUSD.plus(feesUSD)
-
-  poolDayData.volumeUSD = poolDayData.volumeUSD.plus(amountTotalUSDTracked)
-  poolDayData.volumeToken0 = poolDayData.volumeToken0.plus(amount0Abs)
-  poolDayData.volumeToken1 = poolDayData.volumeToken1.plus(amount1Abs)
-  poolDayData.feesUSD = poolDayData.feesUSD.plus(feesUSD)
-
-  poolHourData.volumeUSD = poolHourData.volumeUSD.plus(amountTotalUSDTracked)
-  poolHourData.volumeToken0 = poolHourData.volumeToken0.plus(amount0Abs)
-  poolHourData.volumeToken1 = poolHourData.volumeToken1.plus(amount1Abs)
-  poolHourData.feesUSD = poolHourData.feesUSD.plus(feesUSD)
-
-  token0DayData.volume = token0DayData.volume.plus(amount0Abs)
-  token0DayData.volumeUSD = token0DayData.volumeUSD.plus(amountTotalUSDTracked)
-  token0DayData.untrackedVolumeUSD = token0DayData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
-  token0DayData.feesUSD = token0DayData.feesUSD.plus(feesUSD)
-
-  token0HourData.volume = token0HourData.volume.plus(amount0Abs)
-  token0HourData.volumeUSD = token0HourData.volumeUSD.plus(amountTotalUSDTracked)
-  token0HourData.untrackedVolumeUSD = token0HourData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
-  token0HourData.feesUSD = token0HourData.feesUSD.plus(feesUSD)
-
-  token1DayData.volume = token1DayData.volume.plus(amount1Abs)
-  token1DayData.volumeUSD = token1DayData.volumeUSD.plus(amountTotalUSDTracked)
-  token1DayData.untrackedVolumeUSD = token1DayData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
-  token1DayData.feesUSD = token1DayData.feesUSD.plus(feesUSD)
-
-  token1HourData.volume = token1HourData.volume.plus(amount1Abs)
-  token1HourData.volumeUSD = token1HourData.volumeUSD.plus(amountTotalUSDTracked)
-  token1HourData.untrackedVolumeUSD = token1HourData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
-  token1HourData.feesUSD = token1HourData.feesUSD.plus(feesUSD)
-
+ 
   swap.save()
-  token0DayData.save()
-  token1DayData.save()
-  uniswapDayData.save()
-  poolDayData.save()
   factory.save()
   pool.save()
   token0.save()
   token1.save()
-
-  // Update inner vars of current or crossed ticks
-  let newTick = pool.tick!
-  let tickSpacing = feeTierToTickSpacing(pool.feeTier)
-  let modulo = newTick.mod(tickSpacing)
-  if (modulo.equals(ZERO_BI)) {
-    // Current tick is initialized and needs to be updated
-    loadTickUpdateFeeVarsAndSave(newTick.toI32(), event)
-  }
-
-  let numIters = oldTick
-    .minus(newTick)
-    .abs()
-    .div(tickSpacing)
-
-  if (numIters.gt(BigInt.fromI32(100))) {
-    // In case more than 100 ticks need to be updated ignore the update in
-    // order to avoid timeouts. From testing this behavior occurs only upon
-    // pool initialization. This should not be a big issue as the ticks get
-    // updated later. For early users this error also disappears when calling
-    // collect
-  } else if (newTick.gt(oldTick)) {
-    let firstInitialized = oldTick.plus(tickSpacing.minus(modulo))
-    for (let i = firstInitialized; i.le(newTick); i = i.plus(tickSpacing)) {
-      loadTickUpdateFeeVarsAndSave(i.toI32(), event)
-    }
-  } else if (newTick.lt(oldTick)) {
-    let firstInitialized = oldTick.minus(modulo)
-    for (let i = firstInitialized; i.ge(newTick); i = i.minus(tickSpacing)) {
-      loadTickUpdateFeeVarsAndSave(i.toI32(), event)
-    }
-  }
-}
-
-export function handleFlash(event: FlashEvent): void {
-  // update fee growth
-  let pool = Pool.load(event.address.toHexString())
-  let poolContract = PoolABI.bind(event.address)
-  let feeGrowthGlobal0X128 = poolContract.feeGrowthGlobal0X128()
-  let feeGrowthGlobal1X128 = poolContract.feeGrowthGlobal1X128()
-  pool.feeGrowthGlobal0X128 = feeGrowthGlobal0X128 as BigInt
-  pool.feeGrowthGlobal1X128 = feeGrowthGlobal1X128 as BigInt
-  pool.save()
 }
 
 export function handleCollect(event: CollectEvent): void {
-  // update fee growth
+
   let pool = Pool.load(event.address.toHexString())
   let factory = Factory.load(FACTORY_ADDRESS)
   let bundle = Bundle.load('1')
@@ -564,29 +395,4 @@ export function handleCollect(event: CollectEvent): void {
 
   pool.save()
   collect.save()
-}
-
-function updateTickFeeVarsAndSave(tick: Tick, event: ethereum.Event): void {
-  let poolAddress = event.address
-  // not all ticks are initialized so obtaining null is expected behavior
-  let poolContract = PoolABI.bind(poolAddress)
-  let tickResult = poolContract.ticks(tick.tickIdx.toI32())
-  tick.feeGrowthOutside0X128 = tickResult.value2
-  tick.feeGrowthOutside1X128 = tickResult.value3
-  tick.save()
-
-  updateTickDayData(tick!, event)
-}
-
-function loadTickUpdateFeeVarsAndSave(tickId: i32, event: ethereum.Event): void {
-  let poolAddress = event.address
-  let tick = Tick.load(
-    poolAddress
-      .toHexString()
-      .concat('#')
-      .concat(tickId.toString())
-  )
-  if (tick !== null) {
-    updateTickFeeVarsAndSave(tick!, event)
-  }
 }
