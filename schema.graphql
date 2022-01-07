@@ -128,7 +128,6 @@ type Pool @entity {
   # derived fields
   mints: [Mint!]! @derivedFrom(field: "pool")
   burns: [Burn!]! @derivedFrom(field: "pool")
-  swaps: [Swap!]! @derivedFrom(field: "pool")
   collects: [Collect!]! @derivedFrom(field: "pool")
 }
 
@@ -220,7 +219,6 @@ type Transaction @entity {
   # derived values
   mints: [Mint]! @derivedFrom(field: "transaction")
   burns: [Burn]! @derivedFrom(field: "transaction")
-  swaps: [Swap]! @derivedFrom(field: "transaction")
   collects: [Collect]! @derivedFrom(field: "transaction")
 }
 
