@@ -43,6 +43,8 @@ function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
       position.collectedFeesToken0 = ZERO_BD
       position.collectedFeesToken1 = ZERO_BD
       position.transaction = loadTransaction(event).id
+      position.feeGrowthInside0LastX128 = positionResult.value8
+      position.feeGrowthInside1LastX128 = positionResult.value9
 
       position.amountDepositedUSD = ZERO_BD
       position.amountWithdrawnUSD = ZERO_BD
@@ -50,6 +52,16 @@ function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
     }
   }
 
+  return position
+}
+
+function updateFeeVars(position: Position, event: ethereum.Event, tokenId: BigInt): Position {
+  let positionManagerContract = NonfungiblePositionManager.bind(event.address)
+  let positionResult = positionManagerContract.try_positions(tokenId)
+  if (!positionResult.reverted) {
+    position.feeGrowthInside0LastX128 = positionResult.value.value8
+    position.feeGrowthInside1LastX128 = positionResult.value.value9
+  }
   return position
 }
 
@@ -68,6 +80,8 @@ function savePositionSnapshot(position: Position, event: ethereum.Event): void {
   positionSnapshot.collectedFeesToken0 = position.collectedFeesToken0
   positionSnapshot.collectedFeesToken1 = position.collectedFeesToken1
   positionSnapshot.transaction = loadTransaction(event).id
+  positionSnapshot.feeGrowthInside0LastX128 = position.feeGrowthInside0LastX128
+  positionSnapshot.feeGrowthInside1LastX128 = position.feeGrowthInside1LastX128
   positionSnapshot.save()
 }
 
@@ -100,8 +114,8 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
     .plus(amount1.times(token1.derivedETH.times(bundle.ethPriceUSD)))
   position.amountDepositedUSD = position.amountDepositedUSD.plus(newDepositUSD)
 
+  position = updateFeeVars(position!, event, event.params.tokenId)
   position.save()
-
   savePositionSnapshot(position!, event)
 }
 
@@ -133,6 +147,7 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
     .plus(amount1.times(token1.derivedETH.times(bundle.ethPriceUSD)))
   position.amountWithdrawnUSD = position.amountWithdrawnUSD.plus(newWithdrawUSD)
 
+  position = updateFeeVars(position!, event, event.params.tokenId)
   position.save()
   savePositionSnapshot(position!, event)
 }
@@ -163,6 +178,7 @@ export function handleCollect(event: Collect): void {
     .plus(amount1.times(token1.derivedETH.times(bundle.ethPriceUSD)))
   position.amountCollectedUSD = position.amountCollectedUSD.plus(newCollectUSD)
 
+  position = updateFeeVars(position!, event, event.params.tokenId)
   position.save()
   savePositionSnapshot(position!, event)
 }

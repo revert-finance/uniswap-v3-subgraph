@@ -279,6 +279,13 @@ export function handleSwap(event: SwapEvent): void {
   token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedETH).times(bundle.ethPriceUSD)
   token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedETH).times(bundle.ethPriceUSD)
 
+  // update fee growth
+  let poolContract = PoolABI.bind(event.address)
+  let feeGrowthGlobal0X128 = poolContract.feeGrowthGlobal0X128()
+  let feeGrowthGlobal1X128 = poolContract.feeGrowthGlobal1X128()
+  pool.feeGrowthGlobal0X128 = feeGrowthGlobal0X128 as BigInt
+  pool.feeGrowthGlobal1X128 = feeGrowthGlobal1X128 as BigInt
+
   factory.save()
   pool.save()
   token0.save()
@@ -346,4 +353,15 @@ export function handleCollect(event: CollectEvent): void {
 
   pool.save()
   collect.save()
+}
+
+export function handleFlash(event: FlashEvent): void {
+  // update fee growth
+  let pool = Pool.load(event.address.toHexString())
+  let poolContract = PoolABI.bind(event.address)
+  let feeGrowthGlobal0X128 = poolContract.feeGrowthGlobal0X128()
+  let feeGrowthGlobal1X128 = poolContract.feeGrowthGlobal1X128()
+  pool.feeGrowthGlobal0X128 = feeGrowthGlobal0X128 as BigInt
+  pool.feeGrowthGlobal1X128 = feeGrowthGlobal1X128 as BigInt
+  pool.save()
 }
