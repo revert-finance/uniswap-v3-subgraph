@@ -87,6 +87,10 @@ type Pool @entity {
   liquidity: BigInt!
   # current price tracker
   sqrtPrice: BigInt!
+  # tracker for global fee growth
+  feeGrowthGlobal0X128: BigInt!
+  # tracker for global fee growth
+  feeGrowthGlobal1X128: BigInt!
   # token0 per token1
   token0Price: BigDecimal!
   # token1 per token0
@@ -173,6 +177,9 @@ type Position @entity {
   amountCollectedUSD: BigDecimal!
   # tx in which the position was initialized
   transaction: Transaction!
+  # vars needed for fee computation
+  feeGrowthInside0LastX128: BigInt!
+  feeGrowthInside1LastX128: BigInt!
 }
 
 type PositionSnapshot @entity {
@@ -204,6 +211,9 @@ type PositionSnapshot @entity {
   collectedFeesToken1: BigDecimal!
   # tx in which the snapshot was initialized
   transaction: Transaction!
+  # internal vars needed for fee computation
+  feeGrowthInside0LastX128: BigInt!
+  feeGrowthInside1LastX128: BigInt!
 }
 
 type Transaction @entity {
