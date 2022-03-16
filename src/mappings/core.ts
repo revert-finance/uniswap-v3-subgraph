@@ -141,6 +141,18 @@ export function handleBurn(event: BurnEvent): void {
     pool.liquidity = pool.liquidity.minus(event.params.amount)
   }
 
+  // update globals
+  factory.txCount = factory.txCount.plus(ONE_BI)
+
+  // update token0 data
+  token0.txCount = token0.txCount.plus(ONE_BI)
+
+  // update token1 data
+  token1.txCount = token1.txCount.plus(ONE_BI)
+
+  // pool data
+  pool.txCount = pool.txCount.plus(ONE_BI)
+
   //NOTE: rest of calculation is done in collect event where we have complete amount removed
 
   // burn entity
