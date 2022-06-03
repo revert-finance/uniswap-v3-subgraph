@@ -6,7 +6,7 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "deploy": "graph deploy --product hosted-service revert-finance/uniswap-v3-polygon"
+    "deploy": "graph deploy --product hosted-service revert-finance/uniswap-v3-optimism"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.21.1",
