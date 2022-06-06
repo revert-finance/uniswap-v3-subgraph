@@ -11,7 +11,7 @@ Each branch contains the version for the corresponding chain.
 
 ## Deployed Subgraphs
 
-https://thegraph.com/legacy-explorer/subgraph/revert-finance/uni-v3-mainnet (mainnet)
-https://thegraph.com/legacy-explorer/subgraph/revert-finance/uni-v3-polygon (matic)
-https://thegraph.com/legacy-explorer/subgraph/revert-finance/uni-v3-optimism (optimism)
-https://thegraph.com/legacy-explorer/subgraph/revert-finance/uni-v3-arbitrum (arbitrum)
+https://thegraph.com/legacy-explorer/subgraph/revert-finance/uniswap-v3-mainnet (mainnet)
+https://thegraph.com/legacy-explorer/subgraph/revert-finance/uniswap-v3-polygon (matic)
+https://thegraph.com/legacy-explorer/subgraph/revert-finance/uniswap-v3-optimism (optimism)
+https://thegraph.com/legacy-explorer/subgraph/revert-finance/uniswap-v3-arbitrum (arbitrum)
