@@ -293,10 +293,13 @@ export function handleSwap(event: SwapEvent): void {
 
   // update fee growth
   let poolContract = PoolABI.bind(event.address)
-  let feeGrowthGlobal0X128 = poolContract.feeGrowthGlobal0X128()
-  let feeGrowthGlobal1X128 = poolContract.feeGrowthGlobal1X128()
-  pool.feeGrowthGlobal0X128 = feeGrowthGlobal0X128 as BigInt
-  pool.feeGrowthGlobal1X128 = feeGrowthGlobal1X128 as BigInt
+
+  let feeGrowthGlobal0X128 = poolContract.try_feeGrowthGlobal0X128()
+  let feeGrowthGlobal1X128 = poolContract.try_feeGrowthGlobal1X128()
+  if (!feeGrowthGlobal0X128.reverted && !feeGrowthGlobal1X128.reverted) {
+    pool.feeGrowthGlobal0X128 = feeGrowthGlobal0X128.value
+    pool.feeGrowthGlobal1X128 = feeGrowthGlobal1X128.value
+  }
 
   factory.save()
   pool.save()
@@ -371,9 +374,11 @@ export function handleFlash(event: FlashEvent): void {
   // update fee growth
   let pool = Pool.load(event.address.toHexString())
   let poolContract = PoolABI.bind(event.address)
-  let feeGrowthGlobal0X128 = poolContract.feeGrowthGlobal0X128()
-  let feeGrowthGlobal1X128 = poolContract.feeGrowthGlobal1X128()
-  pool.feeGrowthGlobal0X128 = feeGrowthGlobal0X128 as BigInt
-  pool.feeGrowthGlobal1X128 = feeGrowthGlobal1X128 as BigInt
-  pool.save()
+  let feeGrowthGlobal0X128 = poolContract.try_feeGrowthGlobal0X128()
+  let feeGrowthGlobal1X128 = poolContract.try_feeGrowthGlobal1X128()
+  if (!feeGrowthGlobal0X128.reverted && !feeGrowthGlobal1X128.reverted) {
+    pool.feeGrowthGlobal0X128 = feeGrowthGlobal0X128.value
+    pool.feeGrowthGlobal1X128 = feeGrowthGlobal1X128.value
+    pool.save()
+  }
 }
