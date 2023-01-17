@@ -138,55 +138,7 @@ type Pool @entity {
   # derived fields
   mints: [Mint!]! @derivedFrom(field: "pool")
   burns: [Burn!]! @derivedFrom(field: "pool")
-  swaps: [Swap!]! @derivedFrom(field: "pool")
   collects: [Collect!]! @derivedFrom(field: "pool")
-  ticks: [Tick!]! @derivedFrom(field: "pool")
-}
-
-type Tick @entity {
-  # format: <pool address>#<tick index>
-  id: ID!
-  # pool address
-  poolAddress: String
-  # tick index
-  tickIdx: BigInt!
-  # pointer to pool
-  pool: Pool!
-  # total liquidity pool has as tick lower or upper
-  liquidityGross: BigInt!
-  # how much liquidity changes when tick crossed
-  liquidityNet: BigInt!
-  # calculated price of token0 of tick within this pool - constant
-  price0: BigDecimal!
-  # calculated price of token1 of tick within this pool - constant
-  price1: BigDecimal!
-  # lifetime volume of token0 with this tick in range
-  volumeToken0: BigDecimal!
-  # lifetime volume of token1 with this tick in range
-  volumeToken1: BigDecimal!
-  # lifetime volume in derived USD with this tick in range
-  volumeUSD: BigDecimal!
-  # lifetime volume in untracked USD with this tick in range
-  untrackedVolumeUSD: BigDecimal!
-  # fees in USD
-  feesUSD: BigDecimal!
-  # all time collected fees in token0
-  collectedFeesToken0: BigDecimal!
-  # all time collected fees in token1
-  collectedFeesToken1: BigDecimal!
-  # all time collected fees in USD
-  collectedFeesUSD: BigDecimal!
-  # created time
-  createdAtTimestamp: BigInt!
-  # created block
-  createdAtBlockNumber: BigInt!
-  # Fields used to help derived relationship
-  liquidityProviderCount: BigInt! # used to detect new exchanges
-  # derived fields
-  # swaps: [Swap!]! @derivedFrom(field: "tick")
-  # vars needed for fee computation
-  feeGrowthOutside0X128: BigInt!
-  feeGrowthOutside1X128: BigInt!
 }
 
 type Position @entity {
@@ -202,9 +154,9 @@ type Position @entity {
   # allow indexing by tokens
   token1: Token!
   # lower tick of the position
-  tickLower: Tick!
+  tickLower: BigInt!
   # upper tick of the position
-  tickUpper: Tick!
+  tickUpper: BigInt!
   # total position liquidity
   liquidity: BigInt!
   # amount of token 0 ever deposited to position
@@ -277,7 +229,6 @@ type Transaction @entity {
   # derived values
   mints: [Mint]! @derivedFrom(field: "transaction")
   burns: [Burn]! @derivedFrom(field: "transaction")
-  swaps: [Swap]! @derivedFrom(field: "transaction")
   flashed: [Flash]! @derivedFrom(field: "transaction")
   collects: [Collect]! @derivedFrom(field: "transaction")
 }
@@ -347,39 +298,6 @@ type Burn @entity {
   # upper tick of position
   tickUpper: BigInt!
   # position within the transactions
-  logIndex: BigInt
-}
-
-type Swap @entity {
-  # transaction hash + "#" + index in swaps Transaction array
-  id: ID!
-  # pointer to transaction
-  transaction: Transaction!
-  # timestamp of transaction
-  timestamp: BigInt!
-  # pool swap occured within
-  pool: Pool!
-  # allow indexing by tokens
-  token0: Token!
-  # allow indexing by tokens
-  token1: Token!
-  # sender of the swap
-  sender: Bytes!
-  # recipient of the swap
-  recipient: Bytes!
-  # txn origin
-  origin: Bytes! # the EOA that initiated the txn
-  # delta of token0 swapped
-  amount0: BigDecimal!
-  # delta of token1 swapped
-  amount1: BigDecimal!
-  # derived info
-  amountUSD: BigDecimal!
-  # The sqrt(price) of the pool after the swap, as a Q64.96
-  sqrtPriceX96: BigInt!
-  # the tick after the swap
-  tick: BigInt!
-  # index within the txn
   logIndex: BigInt
 }
 
@@ -541,57 +459,6 @@ type PoolHourData @entity {
   low: BigDecimal!
   # close price of token0
   close: BigDecimal!
-}
-
-type TickHourData @entity {
-  # format: <pool address>-<tick index>-<timestamp>
-  id: ID!
-  # unix timestamp for start of hour
-  periodStartUnix: Int!
-  # pointer to pool
-  pool: Pool!
-  # pointer to tick
-  tick: Tick!
-  # total liquidity pool has as tick lower or upper at end of period
-  liquidityGross: BigInt!
-  # how much liquidity changes when tick crossed at end of period
-  liquidityNet: BigInt!
-  # hourly volume of token0 with this tick in range
-  volumeToken0: BigDecimal!
-  # hourly volume of token1 with this tick in range
-  volumeToken1: BigDecimal!
-  # hourly volume in derived USD with this tick in range
-  volumeUSD: BigDecimal!
-  # fees in USD
-  feesUSD: BigDecimal!
-}
-
-# Data accumulated and condensed into day stats for each exchange
-# Note: this entity gets saved only if there is a change during the day
-type TickDayData @entity {
-  # format: <pool address>-<tick index>-<timestamp>
-  id: ID!
-  # timestamp rounded to current day by dividing by 86400
-  date: Int!
-  # pointer to pool
-  pool: Pool!
-  # pointer to tick
-  tick: Tick!
-  # total liquidity pool has as tick lower or upper at end of period
-  liquidityGross: BigInt!
-  # how much liquidity changes when tick crossed at end of period
-  liquidityNet: BigInt!
-  # hourly volume of token0 with this tick in range
-  volumeToken0: BigDecimal!
-  # hourly volume of token1 with this tick in range
-  volumeToken1: BigDecimal!
-  # hourly volume in derived USD with this tick in range
-  volumeUSD: BigDecimal!
-  # fees in USD
-  feesUSD: BigDecimal!
-  # vars needed for fee computation
-  feeGrowthOutside0X128: BigInt!
-  feeGrowthOutside1X128: BigInt!
 }
 
 type TokenDayData @entity {
