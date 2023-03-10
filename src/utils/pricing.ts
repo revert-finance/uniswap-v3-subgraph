@@ -17,7 +17,7 @@ export let WHITELIST_TOKENS: string[] = [
   "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3"  // Binance DAI
 ]
 
-let MINIMUM_ETH_LOCKED = BigDecimal.fromString('20')
+let MINIMUM_ETH_LOCKED = BigDecimal.fromString('1')
 
 let Q192 = 2 ** 192
 export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, token1: Token): BigDecimal[] {
