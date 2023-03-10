@@ -4,16 +4,20 @@ import { Bundle, Pool, Token } from './../types/schema'
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 
-const WETH_ADDRESS = '0x82af49447d8a07e3bd95bd0d56f35241523fbab1'
-const USDC_WETH_03_POOL = '0x17c14d2c404d167802b16c450d3c99f88f2c4f4d'
+const WETH_ADDRESS = '0x2170ed0880ac9a755fd29b2688956bd959f933f8'
+const USDC_WETH_03_POOL = '0x6bcb0ba386e9de0c29006e46b2f01f047ca1806e' // NOTE USDC/BNB for now..
 
 // token where amounts should contribute to tracked volume and liquidity
 // usually tokens that many tokens are paired with s
 export let WHITELIST_TOKENS: string[] = [
-  WETH_ADDRESS // WETH
+  WETH_ADDRESS, // Binance WETH
+  "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // Binance USDC
+  "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c", // Binance WBNB
+  "0xe9e7cea3dedca5984780bafc599bd69add087d56", // Binance BUSD
+  "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3"  // Binance DAI
 ]
 
-let MINIMUM_ETH_LOCKED = BigDecimal.fromString('4')
+let MINIMUM_ETH_LOCKED = BigDecimal.fromString('20')
 
 let Q192 = 2 ** 192
 export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, token1: Token): BigDecimal[] {
@@ -32,11 +36,11 @@ export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, t
 
 export function getEthPriceInUSD(): BigDecimal {
   // fetch eth prices for each stablecoin
-  let usdcPool = Pool.load(USDC_WETH_03_POOL) // usdc is token1
+  let usdcPool = Pool.load(USDC_WETH_03_POOL) // usdc is token0
 
   // need to only count ETH as having valid USD price if lots of ETH in pool
-  if (usdcPool !== null && usdcPool.totalValueLockedToken0.gt(MINIMUM_ETH_LOCKED)) {
-    return usdcPool.token1Price
+  if (usdcPool !== null && usdcPool.totalValueLockedToken1.gt(MINIMUM_ETH_LOCKED)) {
+    return usdcPool.token0Price
   } else {
     return ZERO_BD
   }

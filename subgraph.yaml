@@ -8,11 +8,11 @@ features:
 dataSources:
   - kind: ethereum/contract
     name: Factory
-    network: arbitrum-one
+    network: bsc
     source:
-      address: '0x1F98431c8aD98523631AE4a59f267346ea31F984'
+      address: '0xdb1d10011ad0ff90774d0c6bb92e5c5c8b4461f7'
       abi: Factory
-      startBlock: 175
+      startBlock: 26324014
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -37,11 +37,11 @@ dataSources:
           handler: handlePoolCreated
   - kind: ethereum/contract
     name: NonfungiblePositionManager
-    network: arbitrum-one
+    network: bsc
     source:
-      address: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88'
+      address: '0x7b8a01b39d58278b5de7e48c8449c9f4f5170613'
       abi: NonfungiblePositionManager
-      startBlock: 175
+      startBlock: 26324014
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -71,7 +71,7 @@ dataSources:
 templates:
   - kind: ethereum/contract
     name: Pool
-    network: arbitrum-one
+    network: bsc
     source:
       abi: Pool
     mapping:
