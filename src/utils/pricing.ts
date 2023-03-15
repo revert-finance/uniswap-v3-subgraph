@@ -5,7 +5,7 @@ import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 
 const WETH_ADDRESS = '0x2170ed0880ac9a755fd29b2688956bd959f933f8'
-const USDC_WETH_03_POOL = '0x6bcb0ba386e9de0c29006e46b2f01f047ca1806e' // NOTE USDC/BNB for now..
+const USDC_WETH_03_POOL = '0x17507bef4c3abc1bc715be723ee1baf571256e05'
 
 // token where amounts should contribute to tracked volume and liquidity
 // usually tokens that many tokens are paired with s
@@ -17,7 +17,7 @@ export let WHITELIST_TOKENS: string[] = [
   "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3"  // Binance DAI
 ]
 
-let MINIMUM_ETH_LOCKED = BigDecimal.fromString('1')
+let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.01')
 
 let Q192 = 2 ** 192
 export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, token1: Token): BigDecimal[] {
@@ -36,11 +36,11 @@ export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, t
 
 export function getEthPriceInUSD(): BigDecimal {
   // fetch eth prices for each stablecoin
-  let usdcPool = Pool.load(USDC_WETH_03_POOL) // usdc is token0
+  let usdcPool = Pool.load(USDC_WETH_03_POOL) // eth is token0
 
   // need to only count ETH as having valid USD price if lots of ETH in pool
-  if (usdcPool !== null && usdcPool.totalValueLockedToken1.gt(MINIMUM_ETH_LOCKED)) {
-    return usdcPool.token0Price
+  if (usdcPool !== null && usdcPool.totalValueLockedToken0.gt(MINIMUM_ETH_LOCKED)) {
+    return usdcPool.token1Price
   } else {
     return ZERO_BD
   }
