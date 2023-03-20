@@ -60,7 +60,7 @@ export function getEthPriceInUSD(): BigDecimal {
     let poolAddress = whiteList[i]
     let pool = Pool.load(poolAddress)
     if (pool.liquidity.gt(ZERO_BI)) {
-      if (pool.token0 == token.id && pool.token1 != otherToken.id) {
+      if (pool.token0 == token.id && (pool.token1 != otherToken.id || !WHITELIST_TOKENS.includes(pool.token0))) {
         // whitelist token is token1
         let token1 = Token.load(pool.token1)
         // get the derived ETH in pool
@@ -71,7 +71,7 @@ export function getEthPriceInUSD(): BigDecimal {
           priceSoFar = pool.token1Price.times(token1.derivedETH as BigDecimal)
         }
       }
-      if (pool.token1 == token.id && pool.token0 != otherToken.id) {
+      if (pool.token1 == token.id && (pool.token0 != otherToken.id || !WHITELIST_TOKENS.includes(pool.token1))) {
         let token0 = Token.load(pool.token0)
         // get the derived ETH in pool
         let ethLocked = pool.totalValueLockedToken0.times(token0.derivedETH)
