@@ -12,6 +12,7 @@ const USDC_WETH_03_POOL = '0x17507bef4c3abc1bc715be723ee1baf571256e05'
 export let WHITELIST_TOKENS: string[] = [
   WETH_ADDRESS, // Binance WETH
   "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // Binance USDC
+  "0x55d398326f99059ff775485246999027b3197955", // Binance USDT
   "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c", // Binance WBNB
   "0xe9e7cea3dedca5984780bafc599bd69add087d56", // Binance BUSD
   "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3"  // Binance DAI
@@ -50,7 +51,7 @@ export function getEthPriceInUSD(): BigDecimal {
  * Search through graph to find derived Eth per token.
  * @todo update to be derived ETH (add stablecoin estimates)
  **/
-export function findEthPerToken(token: Token): BigDecimal {
+export function findEthPerToken(token: Token, otherToken: Token): BigDecimal {
   if (token.id == WETH_ADDRESS) {
     return ONE_BD
   }
@@ -63,7 +64,7 @@ export function findEthPerToken(token: Token): BigDecimal {
     let poolAddress = whiteList[i]
     let pool = Pool.load(poolAddress)
     if (pool.liquidity.gt(ZERO_BI)) {
-      if (pool.token0 == token.id) {
+      if (pool.token0 == token.id && (pool.token1 != otherToken.id || !WHITELIST_TOKENS.includes(pool.token0))) {
         // whitelist token is token1
         let token1 = Token.load(pool.token1)
         // get the derived ETH in pool
@@ -74,7 +75,7 @@ export function findEthPerToken(token: Token): BigDecimal {
           priceSoFar = pool.token1Price.times(token1.derivedETH as BigDecimal)
         }
       }
-      if (pool.token1 == token.id) {
+      if (pool.token1 == token.id && (pool.token0 != otherToken.id || !WHITELIST_TOKENS.includes(pool.token1))) {
         let token0 = Token.load(pool.token0)
         // get the derived ETH in pool
         let ethLocked = pool.totalValueLockedToken0.times(token0.derivedETH)

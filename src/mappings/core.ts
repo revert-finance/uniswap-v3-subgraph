@@ -42,8 +42,8 @@ export function handleInitialize(event: Initialize): void {
   updatePoolHourData(event)
 
   // update token prices
-  token0.derivedETH = findEthPerToken(token0 as Token)
-  token1.derivedETH = findEthPerToken(token1 as Token)
+  token0.derivedETH = findEthPerToken(token0 as Token, token1 as Token)
+  token1.derivedETH = findEthPerToken(token1 as Token, token0 as Token)
   token0.save()
   token1.save()
 }
@@ -363,8 +363,8 @@ export function handleSwap(event: SwapEvent): void {
   // update USD pricing
   bundle.ethPriceUSD = getEthPriceInUSD()
   bundle.save()
-  token0.derivedETH = findEthPerToken(token0 as Token)
-  token1.derivedETH = findEthPerToken(token1 as Token)
+  token0.derivedETH = findEthPerToken(token0 as Token, token1 as Token)
+  token1.derivedETH = findEthPerToken(token1 as Token, token0 as Token)
 
   /**
    * Things afffected by new USD rates
