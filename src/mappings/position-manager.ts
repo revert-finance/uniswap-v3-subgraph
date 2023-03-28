@@ -6,7 +6,7 @@ import {
   NonfungiblePositionManager,
   Transfer
 } from '../types/NonfungiblePositionManager/NonfungiblePositionManager'
-import { Bundle, Position, PositionSnapshot, Token } from '../types/schema'
+import { Bundle, Position, PositionSnapshot, Token, Pool } from '../types/schema'
 import { ADDRESS_ZERO, factoryContract, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { Address, BigInt, ethereum } from '@graphprotocol/graph-ts'
 import { convertTokenToDecimal, loadTransaction } from '../utils'
@@ -24,6 +24,42 @@ function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
     if (!positionCall.reverted) {
       let positionResult = positionCall.value
       let poolAddress = factoryContract.getPool(positionResult.value2, positionResult.value3, positionResult.value4)
+
+      // fix for missing pools which break query
+      let pool = Pool.load(poolAddress.toHexString())
+      if (!pool) {
+        pool = new Pool(poolAddress.toHexString())
+        pool.token0 = positionResult.value2.toHexString()
+        pool.token1 = positionResult.value3.toHexString()
+        pool.feeTier = BigInt.fromI32(positionResult.value4)
+        pool.createdAtTimestamp = event.block.timestamp
+        pool.createdAtBlockNumber = event.block.number
+        pool.liquidityProviderCount = ZERO_BI
+        pool.txCount = ZERO_BI
+        pool.liquidity = ZERO_BI
+        pool.sqrtPrice = ZERO_BI
+        pool.feeGrowthGlobal0X128 = ZERO_BI
+        pool.feeGrowthGlobal1X128 = ZERO_BI
+        pool.token0Price = ZERO_BD
+        pool.token1Price = ZERO_BD
+        pool.observationIndex = ZERO_BI
+        pool.totalValueLockedToken0 = ZERO_BD
+        pool.totalValueLockedToken1 = ZERO_BD
+        pool.totalValueLockedUSD = ZERO_BD
+        pool.totalValueLockedETH = ZERO_BD
+        pool.totalValueLockedUSDUntracked = ZERO_BD
+        pool.volumeToken0 = ZERO_BD
+        pool.volumeToken1 = ZERO_BD
+        pool.volumeUSD = ZERO_BD
+        pool.feesUSD = ZERO_BD
+        pool.untrackedVolumeUSD = ZERO_BD
+      
+        pool.collectedFeesToken0 = ZERO_BD
+        pool.collectedFeesToken1 = ZERO_BD
+        pool.collectedFeesUSD = ZERO_BD
+      
+        pool.save()
+      } 
 
       position = new Position(tokenId.toString())
       // The owner gets correctly updated in the Transfer handler
