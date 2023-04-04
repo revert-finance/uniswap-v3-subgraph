@@ -4,21 +4,21 @@ import { Bundle, Pool, Token } from './../types/schema'
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 
-const WETH_ADDRESS = '0x2170ed0880ac9a755fd29b2688956bd959f933f8'
-const USDC_WETH_03_POOL = '0x17507bef4c3abc1bc715be723ee1baf571256e05'
+const WETH_ADDRESS = '0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000'
+
+const WETH_METIS_03_POOL = '0xf7906a45be80aad89399c3ab1e95a516b297f8c9'
+const METIS_USDC_03_POOL = '0x4a51cb0a8fb5c45a7f2ddfb95cf3b8d58e9daa67'
 
 // token where amounts should contribute to tracked volume and liquidity
 // usually tokens that many tokens are paired with s
 export let WHITELIST_TOKENS: string[] = [
-  WETH_ADDRESS, // Binance WETH
-  "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // Binance USDC
-  "0x55d398326f99059ff775485246999027b3197955", // Binance USDT
-  "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c", // Binance WBNB
-  "0xe9e7cea3dedca5984780bafc599bd69add087d56", // Binance BUSD
-  "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3"  // Binance DAI
+  WETH_ADDRESS, // METIS
+  "0xea32a96608495e54156ae48931a7c20f0dcc1a21", // USDC
+  "0xbb06dca3ae6887fabf931640f67cab3e3a16f4dc", // USDT
+  "0x420000000000000000000000000000000000000a", // WETH
 ]
 
-let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.01')
+let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.001')
 
 let Q192 = 2 ** 192
 export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, token1: Token): BigDecimal[] {
@@ -36,12 +36,12 @@ export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, t
 // weird blocks https://explorer.offchainlabs.com/tx/0x1c295207effcdaa54baa7436068c57448ff8ace855b8d6f3f9c424b4b7603960
 
 export function getEthPriceInUSD(): BigDecimal {
-  // fetch eth prices for each stablecoin
-  let usdcPool = Pool.load(USDC_WETH_03_POOL) // eth is token0
+  // use two pools to estimate usd eth price
+  let pool0 = Pool.load(WETH_METIS_03_POOL)
+  let pool1 = Pool.load(METIS_USDC_03_POOL)
 
-  // need to only count ETH as having valid USD price if lots of ETH in pool
-  if (usdcPool !== null && usdcPool.totalValueLockedToken0.gt(MINIMUM_ETH_LOCKED)) {
-    return usdcPool.token1Price
+  if (pool0 !== null && pool1 != null) {
+    return pool0.token1Price.times(pool1.token1Price)
   } else {
     return ZERO_BD
   }

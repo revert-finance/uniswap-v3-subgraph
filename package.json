@@ -6,7 +6,10 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "deploy": "graph deploy --product hosted-service revert-finance/uniswap-v3-bnb"
+    "deploy": "graph deploy --product hosted-service revert-finance/uniswap-v3-bnb",
+    "create-local": "graph create --node http://metis-graph.maiadao.io:8020/ maia-dao/revert-uniswap-v3",
+    "remove-local": "graph remove --node http://metis-graph.maiadao.io:8020/ maia-dao/revert-uniswap-v3",
+    "deploy-local": "graph deploy --node http://metis-graph.maiadao.io:8020/ --ipfs http://metis-graph.maiadao.io:5001/ maia-dao/revert-uniswap-v3"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.20.0",
