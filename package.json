@@ -17,5 +17,8 @@
     "eslint-config-prettier": "^6.1.0",
     "prettier": "^1.18.2",
     "typescript": "^3.5.2"
+  },
+  "dependencies": {
+    "assemblyscript": "^0.27.1"
   }
 }
