@@ -29,12 +29,4 @@ export function handleSwap(event: SwapEvent): void {
 
 export function handleCollect(event: CollectEvent): void {}
 
-export function handleFlash(event: FlashEvent): void {
-  if (!shouldCacheCalls(event.block.number)) {
-    return
-  }
-
-  let poolContract = PoolABI.bind(event.address)
-  poolContract.feeGrowthGlobal0X128()
-  poolContract.feeGrowthGlobal1X128()
-}
+export function handleFlash(event: FlashEvent): void {}
