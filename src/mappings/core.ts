@@ -24,7 +24,7 @@ export function handleSwap(event: SwapEvent): void {
 
   let poolContract = PoolABI.bind(event.address)
   poolContract.feeGrowthGlobal0X128()
-  poolContract.feeGrowthGlobal1X128()
+  // poolContract.feeGrowthGlobal1X128()
 }
 
 export function handleCollect(event: CollectEvent): void {}
