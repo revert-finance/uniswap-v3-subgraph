@@ -8,11 +8,11 @@ features:
 dataSources:
   - kind: ethereum/contract
     name: Factory
-    network: andromeda
+    network: evmos
     source:
-      address: '0xf5fd18cd5325904cc7141cb9daca1f2f964b9927'
+      address: '0xf544365e7065966f190155f629ce0182fc68eaa2'
       abi: Factory
-      startBlock: 5212263
+      startBlock: 12367456
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -37,11 +37,11 @@ dataSources:
           handler: handlePoolCreated
   - kind: ethereum/contract
     name: NonfungiblePositionManager
-    network: andromeda
+    network: evmos
     source:
-      address: '0x1fc37a909cb3997f96ce395b3ee9ac268c9bccdb'
+      address: '0x5fe5daaa011673289847da4f76d63246ddb2965d'
       abi: NonfungiblePositionManager
-      startBlock: 5212302
+      startBlock: 12367491
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -71,7 +71,7 @@ dataSources:
 templates:
   - kind: ethereum/contract
     name: Pool
-    network: andromeda
+    network: evmos
     source:
       abi: Pool
     mapping:

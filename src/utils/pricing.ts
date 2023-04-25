@@ -4,18 +4,22 @@ import { Bundle, Pool, Token } from './../types/schema'
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 
-const WETH_ADDRESS = '0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000'
+const WEVMOS_ADDRESS = '0xd4949664cd82660aae99bedc034a0dea8a0bd517'
+const WETH_ADDRESS = '0x50de24b3f0b3136c50fa8a3b8ebc8bd80a269ce5' // axlWETH
 
-const WETH_METIS_03_POOL = '0xf7906a45be80aad89399c3ab1e95a516b297f8c9'
-const METIS_USDC_03_POOL = '0x4a51cb0a8fb5c45a7f2ddfb95cf3b8d58e9daa67'
+const stEVMOS_ETH_03_POOL = '0x0086e87fdbfdbff4bbafdf6f577b5aaf15d0228e' //stEVMOS/axlWETH
+const stEVMOS_USDC_03_POOL = '0xd02269b612f3bd17cdb3c7dda75ec07aeab868ed' //axlUSDC/stEVMOS
 
 // token where amounts should contribute to tracked volume and liquidity
-// usually tokens that many tokens are paired with s
+// usually tokens that many tokens are paired with
 export let WHITELIST_TOKENS: string[] = [
-  WETH_ADDRESS, // METIS
-  "0xea32a96608495e54156ae48931a7c20f0dcc1a21", // USDC
-  "0xbb06dca3ae6887fabf931640f67cab3e3a16f4dc", // USDT
-  "0x420000000000000000000000000000000000000a", // WETH
+  WEVMOS_ADDRESS,
+  WETH_ADDRESS,
+  "0x2c68d1d6ab986ff4640b51e1f14c716a076e44c4", // stEVMOS
+  "0xc5e00d3b04563950941f7137b5afa3a534f0d6d6", // ATOM
+  "0xe46910336479f254723710d57e7b683f3315b22b", // USDC (celer)
+  "0x15c3eb3b621d1bff62cba1c9536b7c1ae9149b57", // USDC (axelar)
+  // TODO what to add?
 ]
 
 let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.001')
@@ -33,15 +37,13 @@ export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, t
   return [price0, price1]
 }
 
-// weird blocks https://explorer.offchainlabs.com/tx/0x1c295207effcdaa54baa7436068c57448ff8ace855b8d6f3f9c424b4b7603960
-
 export function getEthPriceInUSD(): BigDecimal {
   // use two pools to estimate usd eth price
-  let pool0 = Pool.load(WETH_METIS_03_POOL)
-  let pool1 = Pool.load(METIS_USDC_03_POOL)
+  let pool0 = Pool.load(stEVMOS_ETH_03_POOL)
+  let pool1 = Pool.load(stEVMOS_USDC_03_POOL)
 
   if (pool0 !== null && pool1 != null) {
-    return pool0.token1Price.times(pool1.token1Price)
+    return pool0.token0Price.times(pool1.token0Price)
   } else {
     return ZERO_BD
   }

@@ -6,9 +6,7 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "create-local": "graph create --node http://metis-graph.maiadao.io:8020/ maia-dao/revert-uniswap-v3",
-    "remove-local": "graph remove --node http://metis-graph.maiadao.io:8020/ maia-dao/revert-uniswap-v3",
-    "deploy-local": "graph deploy --node http://metis-graph.maiadao.io:8020/ --ipfs http://metis-graph.maiadao.io:5001/ maia-dao/revert-uniswap-v3"
+    "deploy": "graph deploy uniswap-v3-evmos --version-label v0.0.1 --node https://app.satsuma.xyz/api/subgraphs/deploy --deploy-key ..."
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.20.0",
