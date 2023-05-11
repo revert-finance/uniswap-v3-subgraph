@@ -5,6 +5,7 @@ import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 
 const WEVMOS_ADDRESS = '0xd4949664cd82660aae99bedc034a0dea8a0bd517'
+const stWEVMOS_ADDRESS = '0x2c68d1d6ab986ff4640b51e1f14c716a076e44c4';
 const WETH_ADDRESS = '0x50de24b3f0b3136c50fa8a3b8ebc8bd80a269ce5' // axlWETH
 
 const stEVMOS_ETH_03_POOL = '0x0086e87fdbfdbff4bbafdf6f577b5aaf15d0228e' //stEVMOS/axlWETH
@@ -15,14 +16,22 @@ const stEVMOS_USDC_03_POOL = '0xd02269b612f3bd17cdb3c7dda75ec07aeab868ed' //axlU
 export let WHITELIST_TOKENS: string[] = [
   WEVMOS_ADDRESS,
   WETH_ADDRESS,
-  "0x2c68d1d6ab986ff4640b51e1f14c716a076e44c4", // stEVMOS
+  stWEVMOS_ADDRESS, // stEVMOS
   "0xc5e00d3b04563950941f7137b5afa3a534f0d6d6", // ATOM
-  "0xe46910336479f254723710d57e7b683f3315b22b", // USDC (celer)
+  "0xb5124fa2b2cf92b2d469b249433ba1c96bdf536d", // stATOM
   "0x15c3eb3b621d1bff62cba1c9536b7c1ae9149b57", // USDC (axelar)
+  "0x4a2a90d444dbb7163b5861b772f882bba394ca67" // DAI (axelar)
   // TODO what to add?
 ]
 
-let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.001')
+let STABLE_COINS: string[] = [
+  '0x15c3eb3b621d1bff62cba1c9536b7c1ae9149b57', // USDC (axelar)
+  '0x4a2a90d444dbb7163b5861b772f882bba394ca67', // DAI (axelar)
+  '0xe46910336479f254723710d57e7b683f3315b22b', // USDC (celer)
+  '0xb72a7567847aba28a2819b855d7fe679d4f59846' // USDT (celer)
+]
+
+let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.0001')
 
 let Q192 = 2 ** 192
 export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, token1: Token): BigDecimal[] {
@@ -57,34 +66,52 @@ export function findEthPerToken(token: Token, otherToken: Token): BigDecimal {
   if (token.id == WETH_ADDRESS) {
     return ONE_BD
   }
+
   let whiteList = token.whitelistPools
   // for now just take USD from pool with greatest TVL
   // need to update this to actually detect best rate based on liquidity distribution
   let largestLiquidityETH = ZERO_BD
   let priceSoFar = ZERO_BD
-  for (let i = 0; i < whiteList.length; ++i) {
-    let poolAddress = whiteList[i]
-    let pool = Pool.load(poolAddress)
-    if (pool.liquidity.gt(ZERO_BI)) {
-      if (pool.token0 == token.id && (pool.token1 != otherToken.id || !WHITELIST_TOKENS.includes(pool.token0))) {
-        // whitelist token is token1
-        let token1 = Token.load(pool.token1)
-        // get the derived ETH in pool
-        let ethLocked = pool.totalValueLockedToken1.times(token1.derivedETH)
-        if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(MINIMUM_ETH_LOCKED)) {
-          largestLiquidityETH = ethLocked
-          // token1 per our token * Eth per token1
-          priceSoFar = pool.token1Price.times(token1.derivedETH as BigDecimal)
+  let bundle = Bundle.load('1')
+
+  // special case for stWEVMOS token
+  if (token.id == stWEVMOS_ADDRESS) {
+    let pool = Pool.load(stEVMOS_USDC_03_POOL)
+    if (pool) {
+      return safeDiv(pool.token0Price, bundle.ethPriceUSD)
+    }
+  }
+
+  // hardcoded fix for incorrect rates
+  // if whitelist includes token - get the safe price
+  if (STABLE_COINS.includes(token.id)) {
+    priceSoFar = safeDiv(ONE_BD, bundle.ethPriceUSD)
+  } else {
+
+    for (let i = 0; i < whiteList.length; ++i) {
+      let poolAddress = whiteList[i]
+      let pool = Pool.load(poolAddress)
+      if (pool.liquidity.gt(ZERO_BI)) {
+        if (pool.token0 == token.id) {
+          // whitelist token is token1
+          let token1 = Token.load(pool.token1)
+          // get the derived ETH in pool
+          let ethLocked = pool.totalValueLockedToken1.times(token1.derivedETH)
+          if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(MINIMUM_ETH_LOCKED)) {
+            largestLiquidityETH = ethLocked
+            // token1 per our token * Eth per token1
+            priceSoFar = pool.token1Price.times(token1.derivedETH as BigDecimal)
+          }
         }
-      }
-      if (pool.token1 == token.id && (pool.token0 != otherToken.id || !WHITELIST_TOKENS.includes(pool.token1))) {
-        let token0 = Token.load(pool.token0)
-        // get the derived ETH in pool
-        let ethLocked = pool.totalValueLockedToken0.times(token0.derivedETH)
-        if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(MINIMUM_ETH_LOCKED)) {
-          largestLiquidityETH = ethLocked
-          // token0 per our token * ETH per token0
-          priceSoFar = pool.token0Price.times(token0.derivedETH as BigDecimal)
+        if (pool.token1 == token.id) {
+          let token0 = Token.load(pool.token0)
+          // get the derived ETH in pool
+          let ethLocked = pool.totalValueLockedToken0.times(token0.derivedETH)
+          if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(MINIMUM_ETH_LOCKED)) {
+            largestLiquidityETH = ethLocked
+            // token0 per our token * ETH per token0
+            priceSoFar = pool.token0Price.times(token0.derivedETH as BigDecimal)
+          }
         }
       }
     }
