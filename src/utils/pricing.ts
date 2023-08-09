@@ -4,18 +4,15 @@ import { Bundle, Pool, Token } from './../types/schema'
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 
-const WETH_ADDRESS = '0x2170ed0880ac9a755fd29b2688956bd959f933f8'
-const USDC_WETH_03_POOL = '0x17507bef4c3abc1bc715be723ee1baf571256e05'
+const WETH_ADDRESS = '0x4200000000000000000000000000000000000006'
+const USDC_WETH_03_POOL = '0x4c36388be6f416a29c8d8eee81c771ce6be14b18'
 
 // token where amounts should contribute to tracked volume and liquidity
 // usually tokens that many tokens are paired with s
 export let WHITELIST_TOKENS: string[] = [
-  WETH_ADDRESS, // Binance WETH
-  "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // Binance USDC
-  "0x55d398326f99059ff775485246999027b3197955", // Binance USDT
-  "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c", // Binance WBNB
-  "0xe9e7cea3dedca5984780bafc599bd69add087d56", // Binance BUSD
-  "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3"  // Binance DAI
+  WETH_ADDRESS, // WETH
+  "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca", // USDC
+  "0x50c5725949a6f0c72e6c4a641f24049a917db0cb", // DAI
 ]
 
 let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.01')
