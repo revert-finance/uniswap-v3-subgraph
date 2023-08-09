@@ -6,7 +6,7 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "deploy": "graph deploy --product hosted-service kalinbas/uniswap-v3-base"
+    "deploy": "graph deploy --product hosted-service revert-finance/uniswap-v3-base"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.20.0",
