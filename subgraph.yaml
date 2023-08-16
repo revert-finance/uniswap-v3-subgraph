@@ -1,19 +1,16 @@
 specVersion: 0.0.2
 description: Uniswap is a decentralized protocol for automated token exchange on Ethereum.
-graft:
-  base: QmUNRKQfsRp11E9xxouPiw2bWxqLdd8FZvdoKvKpkawjk4
-  block: 16877298
 repository: https://github.com/Uniswap/uniswap-v3-subgraph
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
     name: Factory
-    network: mainnet
+    network: bsc
     source:
-      address: '0x1F98431c8aD98523631AE4a59f267346ea31F984'
+      address: '0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865'
       abi: Factory
-      startBlock: 12369621
+      startBlock: 26956207
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -38,11 +35,11 @@ dataSources:
           handler: handlePoolCreated
   - kind: ethereum/contract
     name: NonfungiblePositionManager
-    network: mainnet
+    network: bsc
     source:
-      address: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88'
+      address: '0x46a15b0b27311cedf172ab29e4f4766fbe7f4364'
       abi: NonfungiblePositionManager
-      startBlock: 12369651
+      startBlock: 26931961
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -72,7 +69,7 @@ dataSources:
 templates:
   - kind: ethereum/contract
     name: Pool
-    network: mainnet
+    network: bsc
     source:
       abi: Pool
     mapping:
@@ -93,7 +90,7 @@ templates:
       eventHandlers:
         - event: Initialize(uint160,int24)
           handler: handleInitialize
-        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24,uint128,uint128)
           handler: handleSwap
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
