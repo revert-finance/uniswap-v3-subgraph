@@ -95,7 +95,8 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
 
   // temp fix
   if (Address.fromString(position.pool).equals(Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248'))
-  || Address.fromString(position.pool).equals(Address.fromHexString('0x1ffd370f9d01f75de2cc701956886acec9749e80'))) {
+  || Address.fromString(position.token0).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))
+  || Address.fromString(position.token1).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))) {
     return
   }
   let bundle = Bundle.load('1')
@@ -130,7 +131,8 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
 
   // temp fix
   if (Address.fromString(position.pool).equals(Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248'))
-  || Address.fromString(position.pool).equals(Address.fromHexString('0x1ffd370f9d01f75de2cc701956886acec9749e80'))) {
+  || Address.fromString(position.token0).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))
+  || Address.fromString(position.token1).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))) {
     return
   }
 
@@ -161,7 +163,8 @@ export function handleCollect(event: Collect): void {
     return
   }
   if (Address.fromString(position.pool).equals(Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248'))
-  || Address.fromString(position.pool).equals(Address.fromHexString('0x1ffd370f9d01f75de2cc701956886acec9749e80'))) {
+  || Address.fromString(position.token0).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))
+  || Address.fromString(position.token1).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))) {
     return
   }
 

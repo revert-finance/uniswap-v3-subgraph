@@ -11,8 +11,9 @@ import { populateEmptyPools } from '../utils/backfill'
 
 export function handlePoolCreated(event: PoolCreated): void {
   // temp fix
-  if (event.params.pool == Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248')
-      || event.params.pool == Address.fromHexString('0x1ffd370f9d01f75de2cc701956886acec9749e80')) {
+  if (event.params.token0 == Address.fromString('0x000000000000be0ab658f92dddac29d6df19a3be')
+      || event.params.token1 == Address.fromString('0x000000000000be0ab658f92dddac29d6df19a3be')
+      || event.params.pool == Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248')) {
     return
   }
 
