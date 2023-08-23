@@ -15,6 +15,10 @@ function validate(position: Position | null): boolean {
   if (!position) {
     return false
   }
+  let pool = Pool.load(position.pool)
+  if (!pool) {
+    return false
+  }
   if (Address.fromString(position.pool).equals(Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248'))
     || Address.fromString(position.token0).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))
     || Address.fromString(position.token1).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))) {
