@@ -6,10 +6,22 @@ import {
   NonfungiblePositionManager,
   Transfer
 } from '../types/NonfungiblePositionManager/NonfungiblePositionManager'
-import { Bundle, Position, PositionSnapshot, Token } from '../types/schema'
+import { Bundle, Pool, Position, PositionSnapshot, Token } from '../types/schema'
 import { ADDRESS_ZERO, factoryContract, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { Address, BigInt, ethereum } from '@graphprotocol/graph-ts'
 import { convertTokenToDecimal, loadTransaction } from '../utils'
+
+function validate(position: Position | null): boolean {
+  if (!position) {
+    return false
+  }
+  if (Address.fromString(position.pool).equals(Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248'))
+    || Address.fromString(position.token0).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))
+    || Address.fromString(position.token1).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))) {
+    return false
+  }
+  return true
+}
 
 function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
   let position = Position.load(tokenId.toString())
@@ -94,11 +106,8 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
   }
 
   // temp fix
-  if (Address.fromString(position.pool).equals(Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248'))
-  || Address.fromString(position.token0).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))
-  || Address.fromString(position.token1).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))) {
-    return
-  }
+  if (!validate(position)) { return }
+
   let bundle = Bundle.load('1')
 
   let token0 = Token.load(position.token0)
@@ -123,18 +132,7 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
 
 export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
   let position = getPosition(event, event.params.tokenId)
-
-  // position was not able to be fetched
-  if (position == null) {
-    return
-  }
-
-  // temp fix
-  if (Address.fromString(position.pool).equals(Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248'))
-  || Address.fromString(position.token0).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))
-  || Address.fromString(position.token1).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))) {
-    return
-  }
+  if (!validate(position)) { return }
 
   let bundle = Bundle.load('1')
   let token0 = Token.load(position.token0)
@@ -158,15 +156,7 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
 
 export function handleCollect(event: Collect): void {
   let position = getPosition(event, event.params.tokenId)
-  // position was not able to be fetched
-  if (position == null) {
-    return
-  }
-  if (Address.fromString(position.pool).equals(Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248'))
-  || Address.fromString(position.token0).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))
-  || Address.fromString(position.token1).equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))) {
-    return
-  }
+  if (!validate(position)) { return }
 
   let bundle = Bundle.load('1')
   let token0 = Token.load(position.token0)
@@ -191,11 +181,7 @@ export function handleCollect(event: Collect): void {
 
 export function handleTransfer(event: Transfer): void {
   let position = getPosition(event, event.params.tokenId)
-
-  // position was not able to be fetched
-  if (position == null) {
-    return
-  }
+  if (!validate(position)) { return }
 
   position.owner = event.params.to
   position.save()
