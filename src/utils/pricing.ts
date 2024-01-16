@@ -18,7 +18,7 @@ export let WHITELIST_TOKENS: string[] = [
   "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c" // WBTC
 ]
 
-let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.01')
+let MINIMUM_ETH_LOCKED = BigDecimal.fromString('1')
 
 let Q192 = 2 ** 192
 export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, token1: Token): BigDecimal[] {
@@ -64,6 +64,15 @@ export function findEthPerToken(token: Token, otherToken: Token): BigDecimal {
     let poolAddress = whiteList[i]
     let pool = Pool.load(poolAddress)
     if (pool.liquidity.gt(ZERO_BI)) {
+
+      // shortcut if there is a pool with sufficient ETH
+      if (pool.token0 == token.id && pool.token1 == WETH_ADDRESS || pool.token1 == token.id && pool.token0 == WETH_ADDRESS) {
+        let ethLocked = pool.totalValueLockedETH
+        if (ethLocked.gt(MINIMUM_ETH_LOCKED)) {
+          return pool.token0 == token.id ? pool.token1Price : pool.token0Price
+        }
+      }
+
       if (pool.token0 == token.id && (pool.token1 != otherToken.id || !WHITELIST_TOKENS.includes(pool.token0))) {
         // whitelist token is token1
         let token1 = Token.load(pool.token1)

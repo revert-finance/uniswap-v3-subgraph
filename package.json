@@ -6,7 +6,7 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "deploy": "graph deploy --product hosted-service kalinbas/pancakeswap-v3-bnb"
+    "deploy": "graph deploy --product hosted-service revert-finance/pancakeswap-v3-bnb"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.20.0",
