@@ -10,6 +10,12 @@ import { log, BigInt, Address } from '@graphprotocol/graph-ts'
 
 export function handlePoolCreated(event: PoolCreated): void {
 
+  // temp fix
+  if (event.params.pool === Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248') 
+    || event.params.pool === Address.fromHexString('0x476c6cDf24c269A61D544FeB4D3BFdF4AfE2Cae7')) {
+      return
+  }
+
   // load factory
   let factory = Factory.load(FACTORY_ADDRESS)
   if (factory === null) {
