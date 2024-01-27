@@ -20,7 +20,7 @@ function validate(position: Position | null): boolean {
     return false
   }
   if (Address.fromString(position.token0) === Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248')
-    || Address.fromString(position.token1) === Address.fromHexString('0x476c6cDf24c269A61D544FeB4D3BFdF4AfE2Cae7')) {
+    || Address.fromString(position.token1) === Address.fromHexString('0x476c6cdf24c269a61d544feb4d3bfdf4afe2cae7')) {
     return false
   }
   return true
