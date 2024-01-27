@@ -24,8 +24,9 @@ function validate(position: Position | null): boolean {
     || Address.fromString(position.token1) === Address.fromHexString('0x5500721e5a063f0396c5e025a640e8491eb89aac')
     || Address.fromString(position.token1) === Address.fromHexString('0x1ffd370f9d01f75de2cc701956886acec9749e80')
     || Address.fromString(position.token1) === Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be')
-    || Address.fromString(position.token1) === Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248')) {
-    return false
+    || Address.fromString(position.token1) === Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248') 
+    || Address.fromString(position.token1) === Address.fromHexString('0x476c6cdf24c269a61d544feb4d3bfdf4afe2cae7')) {
+      return false
   }
   return true
 }
