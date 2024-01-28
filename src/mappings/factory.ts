@@ -11,13 +11,13 @@ import { populateEmptyPools } from '../utils/backfill'
 
 export function handlePoolCreated(event: PoolCreated): void {
   // temp fix
-  if (event.params.pool === Address.fromHexString('0x282b7d6bef6c78927f394330dca297eca2bd18cd') 
-  || event.params.pool === Address.fromHexString('0x5738de8d0b864d5ef5d65b9e05b421b71f2c2eb4') 
-  || event.params.pool === Address.fromHexString('0x5500721e5a063f0396c5e025a640e8491eb89aac')
-  || event.params.pool === Address.fromHexString('0x1ffd370f9d01f75de2cc701956886acec9749e80')
-  || event.params.pool === Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be')
-  || event.params.pool === Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248')
-  || event.params.pool === Address.fromHexString('0x476c6cdf24c269a61d544feb4d3bfdf4afe2cae7')) {
+  if (event.params.pool.equals(Address.fromHexString('0x282b7d6bef6c78927f394330dca297eca2bd18cd')) 
+  || event.params.pool.equals(Address.fromHexString('0x5738de8d0b864d5ef5d65b9e05b421b71f2c2eb4')) 
+  || event.params.pool.equals(Address.fromHexString('0x5500721e5a063f0396c5e025a640e8491eb89aac'))
+  || event.params.pool.equals(Address.fromHexString('0x1ffd370f9d01f75de2cc701956886acec9749e80'))
+  || event.params.pool.equals(Address.fromHexString('0x000000000000be0ab658f92dddac29d6df19a3be'))
+  || event.params.pool.equals(Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248'))
+  || event.params.pool.equals(Address.fromHexString('0x476c6cdf24c269a61d544feb4d3bfdf4afe2cae7'))) {
     return
   }
 
