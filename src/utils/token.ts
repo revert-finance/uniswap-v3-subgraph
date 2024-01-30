@@ -3,7 +3,7 @@ import { ERC20 } from '../types/Factory/ERC20'
 import { ERC20SymbolBytes } from '../types/Factory/ERC20SymbolBytes'
 import { ERC20NameBytes } from '../types/Factory/ERC20NameBytes'
 import { StaticTokenDefinition } from './staticTokenDefinition'
-import { BigInt, Address } from '@graphprotocol/graph-ts'
+import { BigInt, Address, ethereum } from '@graphprotocol/graph-ts'
 import { isNullEthValue } from '.'
 
 export function fetchTokenSymbol(tokenAddress: Address): string {
@@ -75,19 +75,23 @@ export function fetchTokenTotalSupply(tokenAddress: Address): BigInt {
 }
 
 export function fetchTokenDecimals(tokenAddress: Address): BigInt {
-
-  // try with the static definition
-  let staticTokenDefinition = StaticTokenDefinition.fromAddress(tokenAddress)
-  if(staticTokenDefinition != null) {
-    return staticTokenDefinition.decimals
-  }
-
   let contract = ERC20.bind(tokenAddress)
-  // try types uint8 for decimals
-  let decimalValue = null
-  let decimalResult = contract.try_decimals()
+  let decimalResult = contract.tryCall("decimals", "decimals():(uint8)", []);
   if (!decimalResult.reverted) {
-    decimalValue = decimalResult.value
+    let values: Array<ethereum.Value> = decimalResult.value
+    let value = values[0]
+    if (value.kind == ethereum.ValueKind.INT || value.kind == ethereum.ValueKind.UINT) {
+      // types(uint8).max=255
+      if (value.toBigInt().le(BigInt.fromI32(255))) {
+        return value.toBigInt()
+      }
+    }
+  } else {
+    // try with the static definition
+    let staticTokenDefinition = StaticTokenDefinition.fromAddress(tokenAddress)
+    if(staticTokenDefinition != null) {
+      return staticTokenDefinition.decimals
+    }
   }
-  return BigInt.fromI32(decimalValue as i32)
+  return BigInt.fromI32(0)
 }
