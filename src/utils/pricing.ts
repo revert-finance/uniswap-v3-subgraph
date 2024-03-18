@@ -60,6 +60,40 @@ export function findEthPerToken(token: Token, otherToken: Token): BigDecimal {
   // need to update this to actually detect best rate based on liquidity distribution
   let largestLiquidityETH = ZERO_BD
   let priceSoFar = ZERO_BD
+
+  // first check direct WETH pairs
+  for (let i = 0; i < whiteList.length; ++i) {
+    let poolAddress = whiteList[i]
+    let pool = Pool.load(poolAddress)
+    if (pool.liquidity.gt(ZERO_BI)) {
+      if (pool.token0 == token.id && pool.token1 == WETH_ADDRESS) {
+        // whitelist token is token1
+        let token1 = Token.load(pool.token1)
+        // get the derived ETH in pool
+        let ethLocked = pool.totalValueLockedToken1.times(token1.derivedETH)
+        if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(MINIMUM_ETH_LOCKED)) {
+          largestLiquidityETH = ethLocked
+          // token1 per our token * Eth per token1
+          priceSoFar = pool.token1Price.times(token1.derivedETH as BigDecimal)
+        }
+      }
+      if (pool.token1 == token.id && pool.token0 == WETH_ADDRESS) {
+        let token0 = Token.load(pool.token0)
+        // get the derived ETH in pool
+        let ethLocked = pool.totalValueLockedToken0.times(token0.derivedETH)
+        if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(MINIMUM_ETH_LOCKED)) {
+          largestLiquidityETH = ethLocked
+          // token0 per our token * ETH per token0
+          priceSoFar = pool.token0Price.times(token0.derivedETH as BigDecimal)
+        }
+      }
+    }
+  }
+
+  if (priceSoFar.gt(ZERO_BD)) {
+    return priceSoFar
+  }
+
   for (let i = 0; i < whiteList.length; ++i) {
     let poolAddress = whiteList[i]
     let pool = Pool.load(poolAddress)
