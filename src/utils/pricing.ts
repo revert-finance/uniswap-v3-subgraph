@@ -4,15 +4,14 @@ import { Bundle, Pool, Token } from './../types/schema'
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 
-const WETH_ADDRESS = '0x4200000000000000000000000000000000000006'
-const USDC_WETH_03_POOL = '0x4c36388be6f416a29c8d8eee81c771ce6be14b18'
+const WETH_ADDRESS = '0x4300000000000000000000000000000000000004'
+const USDC_WETH_005_POOL = '0xf5a23bdd36a56ede75d503f6f643d5eaf25b1a8f'
 
 // token where amounts should contribute to tracked volume and liquidity
 // usually tokens that many tokens are paired with s
 export let WHITELIST_TOKENS: string[] = [
   WETH_ADDRESS, // WETH
-  "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca", // USDC
-  "0x50c5725949a6f0c72e6c4a641f24049a917db0cb", // DAI
+  "0x4300000000000000000000000000000000000003" // USDC
 ]
 
 let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.01')
@@ -34,11 +33,11 @@ export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, t
 
 export function getEthPriceInUSD(): BigDecimal {
   // fetch eth prices for each stablecoin
-  let usdcPool = Pool.load(USDC_WETH_03_POOL) // eth is token0
+  let usdcPool = Pool.load(USDC_WETH_005_POOL) // eth is token1
 
   // need to only count ETH as having valid USD price if lots of ETH in pool
-  if (usdcPool !== null && usdcPool.totalValueLockedToken0.gt(MINIMUM_ETH_LOCKED)) {
-    return usdcPool.token1Price
+  if (usdcPool !== null && usdcPool.totalValueLockedToken1.gt(MINIMUM_ETH_LOCKED)) {
+    return usdcPool.token0Price
   } else {
     return ZERO_BD
   }
@@ -61,7 +60,7 @@ export function findEthPerToken(token: Token, otherToken: Token): BigDecimal {
     let poolAddress = whiteList[i]
     let pool = Pool.load(poolAddress)
     if (pool.liquidity.gt(ZERO_BI)) {
-      if (pool.token0 == token.id && (pool.token1 != otherToken.id || !WHITELIST_TOKENS.includes(pool.token0))) {
+      if (pool.token0 == token.id) {
         // whitelist token is token1
         let token1 = Token.load(pool.token1)
         // get the derived ETH in pool
@@ -72,7 +71,7 @@ export function findEthPerToken(token: Token, otherToken: Token): BigDecimal {
           priceSoFar = pool.token1Price.times(token1.derivedETH as BigDecimal)
         }
       }
-      if (pool.token1 == token.id && (pool.token0 != otherToken.id || !WHITELIST_TOKENS.includes(pool.token1))) {
+      if (pool.token1 == token.id) {
         let token0 = Token.load(pool.token0)
         // get the derived ETH in pool
         let ethLocked = pool.totalValueLockedToken0.times(token0.derivedETH)

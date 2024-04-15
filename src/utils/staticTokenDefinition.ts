@@ -20,24 +20,6 @@ export class StaticTokenDefinition {
   static getStaticDefinitions(): Array<StaticTokenDefinition> {
     let staticDefinitions = new Array<StaticTokenDefinition>(6)
 
-    // Add WETH
-    let tokenWETH = new StaticTokenDefinition(
-      Address.fromString('0x82af49447d8a07e3bd95bd0d56f35241523fbab1'),
-      'WETH',
-      'Wrapped Ethereum',
-      BigInt.fromI32(18)
-    )
-    staticDefinitions.push(tokenWETH)
-
-    // USDC
-    let tokenUSDC = new StaticTokenDefinition(
-      Address.fromString('0xff970a61a04b1ca14834a43f5de4533ebddb5cc8'),
-      'USDC',
-      'USD Coin',
-      BigInt.fromI32(6)
-    )
-    staticDefinitions.push(tokenUSDC)
-
     return staticDefinitions
   }
 
