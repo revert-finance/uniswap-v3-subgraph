@@ -6,7 +6,7 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "deploy": "graph deploy --studio uni-v3-blast"
+    "deploy": "graph deploy --studio thruster-v3-blast"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.20.0",
