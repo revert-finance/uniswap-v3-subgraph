@@ -18,7 +18,7 @@ export class StaticTokenDefinition {
 
   // Get all tokens with a static defintion
   static getStaticDefinitions(): Array<StaticTokenDefinition> {
-    let staticDefinitions = new Array<StaticTokenDefinition>(6)
+    let staticDefinitions = new Array<StaticTokenDefinition>()
 
     // Add WETH
     let tokenWETH = new StaticTokenDefinition(

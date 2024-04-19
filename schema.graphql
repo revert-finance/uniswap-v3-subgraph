@@ -214,6 +214,12 @@ type PositionSnapshot @entity {
   # internal vars needed for fee computation
   feeGrowthInside0LastX128: BigInt!
   feeGrowthInside1LastX128: BigInt!
+
+  # current price values for quick querying
+  ethPriceUSD: BigDecimal!
+  derivedETHToken0: BigDecimal!
+  derivedETHToken1: BigDecimal!
+  derivedETHNative: BigDecimal!
 }
 
 type Transaction @entity {

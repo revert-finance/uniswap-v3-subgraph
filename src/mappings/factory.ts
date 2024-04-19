@@ -9,11 +9,6 @@ import { fetchTokenSymbol, fetchTokenName, fetchTokenTotalSupply, fetchTokenDeci
 import { log, BigInt, Address } from '@graphprotocol/graph-ts'
 
 export function handlePoolCreated(event: PoolCreated): void {
-  // temp fix
-  if (event.params.pool.equals(Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248')) ||
-      event.params.pool.equals(Address.fromHexString('0x476c6cDf24c269A61D544FeB4D3BFdF4AfE2Cae7'))) {
-    return
-  }
 
   // load factory
   let factory = Factory.load(FACTORY_ADDRESS)
@@ -51,13 +46,6 @@ export function handlePoolCreated(event: PoolCreated): void {
     token0.name = fetchTokenName(event.params.token0)
     token0.totalSupply = fetchTokenTotalSupply(event.params.token0)
     let decimals = fetchTokenDecimals(event.params.token0)
-
-    // bail if we couldn't figure out the decimals
-    if (decimals === null) {
-      log.debug('mybug the decimal on token 0 was null', [])
-      return
-    }
-
     token0.decimals = decimals
     token0.derivedETH = ZERO_BD
     token0.volume = ZERO_BD
@@ -78,11 +66,6 @@ export function handlePoolCreated(event: PoolCreated): void {
     token1.name = fetchTokenName(event.params.token1)
     token1.totalSupply = fetchTokenTotalSupply(event.params.token1)
     let decimals = fetchTokenDecimals(event.params.token1)
-    // bail if we couldn't figure out the decimals
-    if (decimals === null) {
-      log.debug('mybug the decimal on token 0 was null', [])
-      return
-    }
     token1.decimals = decimals
     token1.derivedETH = ZERO_BD
     token1.volume = ZERO_BD
