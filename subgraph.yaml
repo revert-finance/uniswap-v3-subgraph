@@ -1,8 +1,5 @@
-specVersion: 0.0.2
+specVersion: 0.0.5
 description: Uniswap is a decentralized protocol for automated token exchange on Ethereum.
-graft:
-  base: QmNt5nwRE1JjzvWC7VSwxHfWNbmE9bETbD3LZJ4v1PfEi3
-  block: 52770000
 repository: https://github.com/Uniswap/uniswap-v3-subgraph
 schema:
   file: ./schema.graphql
@@ -16,7 +13,7 @@ dataSources:
       startBlock: 22757547
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/factory.ts
       entities:
@@ -45,7 +42,7 @@ dataSources:
       startBlock: 22760586
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/position-manager.ts
       entities:
@@ -77,7 +74,7 @@ templates:
       abi: Pool
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/core.ts
       entities:
@@ -97,9 +94,13 @@ templates:
           handler: handleSwap
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
+          receipt: true
         - event: Burn(indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleBurn
+          receipt: true
         - event: Flash(indexed address,indexed address,uint256,uint256,uint256,uint256)
           handler: handleFlash
+          receipt: true
         - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
           handler: handleCollect
+          receipt: true
