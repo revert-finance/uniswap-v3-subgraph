@@ -76,7 +76,7 @@ export function findEthPerToken(token: Token, otherToken: Token): BigDecimal {
   // need to update this to actually detect best rate based on liquidity distribution
   let largestLiquidityETH = ZERO_BD
   let priceSoFar = ZERO_BD
-  let bundle = Bundle.load('1')
+  let bundle = Bundle.load('1')!
 
   // hardcoded fix for incorrect rates
   // if whitelist includes token - get the safe price
@@ -85,12 +85,12 @@ export function findEthPerToken(token: Token, otherToken: Token): BigDecimal {
   } else {
     for (let i = 0; i < whiteList.length; ++i) {
       let poolAddress = whiteList[i]
-      let pool = Pool.load(poolAddress)
+      let pool = Pool.load(poolAddress)!
 
       if (pool.liquidity.gt(ZERO_BI)) {
         if (pool.token0 == token.id && (pool.token1 != otherToken.id || !WHITELIST_TOKENS.includes(pool.token0))) {
           // whitelist token is token1
-          let token1 = Token.load(pool.token1)
+          let token1 = Token.load(pool.token1)!
           // get the derived ETH in pool
           let ethLocked = pool.totalValueLockedToken1.times(token1.derivedETH)
           if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(MINIMUM_ETH_LOCKED)) {
@@ -100,7 +100,7 @@ export function findEthPerToken(token: Token, otherToken: Token): BigDecimal {
           }
         }
         if (pool.token1 == token.id && (pool.token0 != otherToken.id || !WHITELIST_TOKENS.includes(pool.token1))) {
-          let token0 = Token.load(pool.token0)
+          let token0 = Token.load(pool.token0)!
           // get the derived ETH in pool
           let ethLocked = pool.totalValueLockedToken0.times(token0.derivedETH)
           if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(MINIMUM_ETH_LOCKED)) {
