@@ -53,11 +53,11 @@ export function getNativePriceInETH(): BigDecimal {
 
 export function getEthPriceInUSD(): BigDecimal {
   // fetch eth prices for each stablecoin
-  let usdcPool = Pool.load(USDC_WETH_03_POOL) // usdc is token1
+  let usdcPool = Pool.load(USDC_WETH_03_POOL) // usdc is token0
 
   // need to only count ETH as having valid USD price if lots of ETH in pool
-  if (usdcPool !== null && usdcPool.totalValueLockedToken0.gt(MINIMUM_ETH_LOCKED)) {
-    return usdcPool.token1Price
+  if (usdcPool !== null && usdcPool.totalValueLockedToken1.gt(MINIMUM_ETH_LOCKED)) {
+    return usdcPool.token0Price
   } else {
     return ZERO_BD
   }
