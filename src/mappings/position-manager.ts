@@ -178,10 +178,10 @@ export function handleCollect(event: Collect): void {
 }
 
 export function handleTransfer(event: Transfer): void {
-  let position = getPosition(event, event.params.tokenId)!
+  let position = getPosition(event, event.params.tokenId)
 
   // position was not able to be fetched
-  if (position == null) {
+  if (position === null) {
     return
   }
 
