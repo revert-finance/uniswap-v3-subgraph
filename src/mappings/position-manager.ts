@@ -175,20 +175,16 @@ export function handleCollect(event: Collect): void {
 }
 
 export function handleTransfer(event: Transfer): void {
-  let position = getPosition(event, event.params.tokenId)!
-
+  let position = getPosition(event, event.params.tokenId)
   // position was not able to be fetched
-  if (position == null) {
+  if (position === null) {
     return
   }
-
   position.owner = event.params.to
   position.save()
 
   let bundle = Bundle.load('1')!
-  let token0 = Token.load(position.token0)
-  let token1 = Token.load(position.token1)
-  if (token0 != null && token1 != null) {
-    savePositionSnapshot(position, event, bundle, token0, token1)
-  }
+  let token0 = Token.load(position.token0)!
+  let token1 = Token.load(position.token1)!
+  savePositionSnapshot(position, event, bundle, token0, token1)
 }

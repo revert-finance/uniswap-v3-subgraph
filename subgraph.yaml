@@ -6,6 +6,8 @@ graft:
   block: 23015900
 schema:
   file: ./schema.graphql
+features:
+  - grafting
 dataSources:
   - kind: ethereum/contract
     name: Factory
