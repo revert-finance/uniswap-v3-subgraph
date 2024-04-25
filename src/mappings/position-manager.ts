@@ -185,12 +185,13 @@ export function handleTransfer(event: Transfer): void {
     return
   }
 
-  let bundle = Bundle.load('1')!
-  let token0 = Token.load(position.token0)!
-  let token1 = Token.load(position.token1)!
-
   position.owner = event.params.to
   position.save()
 
-  savePositionSnapshot(position, event, bundle, token0, token1)
+  let bundle = Bundle.load('1')!
+  let token0 = Token.load(position.token0)
+  let token1 = Token.load(position.token1)
+  if (token0 != null && token1 != null) {
+    savePositionSnapshot(position, event, bundle, token0, token1)
+  }
 }
