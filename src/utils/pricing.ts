@@ -11,8 +11,9 @@ const USDC_WETH_03_POOL = '0x4c36388be6f416a29c8d8eee81c771ce6be14b18'
 // usually tokens that many tokens are paired with s
 export let WHITELIST_TOKENS: string[] = [
   WETH_ADDRESS, // WETH
-  "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca", // USDC
+  "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca", // USDCb
   "0x50c5725949a6f0c72e6c4a641f24049a917db0cb", // DAI
+  "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913" // USDC
 ]
 
 let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.01')
@@ -59,11 +60,11 @@ export function findEthPerToken(token: Token, otherToken: Token): BigDecimal {
   let priceSoFar = ZERO_BD
   for (let i = 0; i < whiteList.length; ++i) {
     let poolAddress = whiteList[i]
-    let pool = Pool.load(poolAddress)
+    let pool = Pool.load(poolAddress)!
     if (pool.liquidity.gt(ZERO_BI)) {
       if (pool.token0 == token.id && (pool.token1 != otherToken.id || !WHITELIST_TOKENS.includes(pool.token0))) {
         // whitelist token is token1
-        let token1 = Token.load(pool.token1)
+        let token1 = Token.load(pool.token1)!
         // get the derived ETH in pool
         let ethLocked = pool.totalValueLockedToken1.times(token1.derivedETH)
         if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(MINIMUM_ETH_LOCKED)) {
@@ -73,7 +74,7 @@ export function findEthPerToken(token: Token, otherToken: Token): BigDecimal {
         }
       }
       if (pool.token1 == token.id && (pool.token0 != otherToken.id || !WHITELIST_TOKENS.includes(pool.token1))) {
-        let token0 = Token.load(pool.token0)
+        let token0 = Token.load(pool.token0)!
         // get the derived ETH in pool
         let ethLocked = pool.totalValueLockedToken0.times(token0.derivedETH)
         if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(MINIMUM_ETH_LOCKED)) {
@@ -99,7 +100,7 @@ export function getTrackedAmountUSD(
   tokenAmount1: BigDecimal,
   token1: Token
 ): BigDecimal {
-  let bundle = Bundle.load('1')
+  let bundle = Bundle.load('1')!
   let price0USD = token0.derivedETH.times(bundle.ethPriceUSD)
   let price1USD = token1.derivedETH.times(bundle.ethPriceUSD)
 

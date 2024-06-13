@@ -70,6 +70,7 @@ type Token @entity {
   whitelistPools: [Pool!]!
   # derived fields
   tokenDayData: [TokenDayData!]! @derivedFrom(field: "token")
+  version: Int
 }
 
 type Pool @entity {
