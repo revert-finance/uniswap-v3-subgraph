@@ -4,14 +4,17 @@ import { Bundle, Pool, Token } from './../types/schema'
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 
-const NATIVE_TOKEN = '0x82af49447d8a07e3bd95bd0d56f35241523fbab1'
-const WETH_ADDRESS = '0x82af49447d8a07e3bd95bd0d56f35241523fbab1'
-const USDC_WETH_03_POOL = '0x17c14d2c404d167802b16c450d3c99f88f2c4f4d'
+const NATIVE_TOKEN = '0x4200000000000000000000000000000000000006'
+const WETH_ADDRESS = '0x4200000000000000000000000000000000000006'
+const USDC_WETH_03_POOL = '0x3241738149b24c9164da14fa2040159ffc6dd237'
 
 // token where amounts should contribute to tracked volume and liquidity
 // usually tokens that many tokens are paired with s
 export let WHITELIST_TOKENS: string[] = [
-  WETH_ADDRESS // WETH
+  WETH_ADDRESS,
+  "0x0b2c639c533813f4aa9d7837caf62653d097ff85", // USDC
+  "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1", // DAI
+  "0x4200000000000000000000000000000000000042" // OP
 ]
 
 let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.01')
@@ -43,11 +46,11 @@ export function getNativePriceInETH(): BigDecimal {
 
 export function getEthPriceInUSD(): BigDecimal {
   // fetch eth prices for each stablecoin
-  let usdcPool = Pool.load(USDC_WETH_03_POOL) // usdc is token1
+  let usdcPool = Pool.load(USDC_WETH_03_POOL) // usdc is token0
 
   // need to only count ETH as having valid USD price if lots of ETH in pool
-  if (usdcPool !== null && usdcPool.totalValueLockedToken0.gt(MINIMUM_ETH_LOCKED)) {
-    return usdcPool.token1Price
+  if (usdcPool !== null && usdcPool.totalValueLockedToken1.gt(MINIMUM_ETH_LOCKED)) {
+    return usdcPool.token0Price
   } else {
     return ZERO_BD
   }
