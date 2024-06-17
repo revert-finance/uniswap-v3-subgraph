@@ -6,7 +6,7 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "deploy": "graph deploy --product subgraph-studio uniswap-v3-base"
+    "deploy": "graph deploy --product subgraph-studio velodrom-optimism-full"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.20.0",

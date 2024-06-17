@@ -4,26 +4,26 @@ import { Bundle, Pool, Token } from './../types/schema'
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 
+const NATIVE_TOKEN = '0x4200000000000000000000000000000000000006'
 const WETH_ADDRESS = '0x4200000000000000000000000000000000000006'
-const USDC_WETH_03_POOL = '0x4c36388be6f416a29c8d8eee81c771ce6be14b18'
+const USDC_WETH_03_POOL = '0x3241738149b24c9164da14fa2040159ffc6dd237'
 
 // token where amounts should contribute to tracked volume and liquidity
 // usually tokens that many tokens are paired with s
 export let WHITELIST_TOKENS: string[] = [
-  WETH_ADDRESS, // WETH
-  "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca", // USDCb
-  "0x50c5725949a6f0c72e6c4a641f24049a917db0cb", // DAI
-  "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913" // USDC
+  WETH_ADDRESS,
+  "0x0b2c639c533813f4aa9d7837caf62653d097ff85", // USDC
+  "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1", // DAI
+  "0x4200000000000000000000000000000000000042" // OP
 ]
 
 let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.01')
 
-let Q192 = 2 ** 192
+let Q192 = BigInt.fromI32(2).pow(192).toBigDecimal()
 export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, token1: Token): BigDecimal[] {
   let num = sqrtPriceX96.times(sqrtPriceX96).toBigDecimal()
-  let denom = BigDecimal.fromString(Q192.toString())
   let price1 = num
-    .div(denom)
+    .div(Q192)
     .times(exponentToBigDecimal(token0.decimals))
     .div(exponentToBigDecimal(token1.decimals))
 
@@ -31,15 +31,26 @@ export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, t
   return [price0, price1]
 }
 
-// weird blocks https://explorer.offchainlabs.com/tx/0x1c295207effcdaa54baa7436068c57448ff8ace855b8d6f3f9c424b4b7603960
+export function getNativePriceInETH(): BigDecimal {
+  if (NATIVE_TOKEN === WETH_ADDRESS) {
+    return ONE_BD
+  } else {
+    let token = Token.load(NATIVE_TOKEN)
+    if (token) {
+      return token.derivedETH
+    } else {
+      return ZERO_BD
+    }
+  }
+}
 
 export function getEthPriceInUSD(): BigDecimal {
   // fetch eth prices for each stablecoin
-  let usdcPool = Pool.load(USDC_WETH_03_POOL) // eth is token0
+  let usdcPool = Pool.load(USDC_WETH_03_POOL) // usdc is token0
 
   // need to only count ETH as having valid USD price if lots of ETH in pool
-  if (usdcPool !== null && usdcPool.totalValueLockedToken0.gt(MINIMUM_ETH_LOCKED)) {
-    return usdcPool.token1Price
+  if (usdcPool !== null && usdcPool.totalValueLockedToken1.gt(MINIMUM_ETH_LOCKED)) {
+    return usdcPool.token0Price
   } else {
     return ZERO_BD
   }
