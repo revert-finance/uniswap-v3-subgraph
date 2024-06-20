@@ -6,7 +6,7 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "deploy": "graph deploy --product subgraph-studio velodrome-optimism-full"
+    "deploy": "graph deploy --product subgraph-studio aerodrome-base-full"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.20.0",

@@ -9,11 +9,11 @@ features:
 dataSources:
   - kind: ethereum/contract
     name: Factory
-    network: optimism
+    network: base
     source:
-      address: '0x548118C7E0B865C2CfA94D15EC86B666468ac758'
+      address: '0x5e7bb104d84c7cb9b682aac2f3d509f5f406809a'
       abi: Factory
-      startBlock: 117044072
+      startBlock: 13843704
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -38,11 +38,11 @@ dataSources:
           handler: handlePoolCreated
   - kind: ethereum/contract
     name: NonfungiblePositionManager
-    network: optimism
+    network: base
     source:
-      address: '0xbB5DFE1380333CEE4c2EeBd7202c80dE2256AdF4'
+      address: '0x827922686190790b37229fd06084350e74485b72'
       abi: NonfungiblePositionManager
-      startBlock: 117044107
+      startBlock: 13843719
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -72,7 +72,7 @@ dataSources:
 templates:
   - kind: ethereum/contract
     name: Pool
-    network: optimism
+    network: base
     source:
       abi: Pool
     mapping:
