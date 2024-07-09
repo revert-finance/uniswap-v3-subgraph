@@ -11,9 +11,9 @@ dataSources:
     name: Factory
     network: optimism
     source:
-      address: '0x548118C7E0B865C2CfA94D15EC86B666468ac758'
+      address: '0xCc0bDDB707055e04e497aB22a59c2aF4391cd12F'
       abi: Factory
-      startBlock: 117044072
+      startBlock: 121501661
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -40,9 +40,9 @@ dataSources:
     name: NonfungiblePositionManager
     network: optimism
     source:
-      address: '0xbB5DFE1380333CEE4c2EeBd7202c80dE2256AdF4'
+      address: '0x416b433906b1B72FA758e166e239c43d68dC6F29'
       abi: NonfungiblePositionManager
-      startBlock: 117044107
+      startBlock: 121501676
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

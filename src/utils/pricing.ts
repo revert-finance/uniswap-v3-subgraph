@@ -6,7 +6,7 @@ import { exponentToBigDecimal, safeDiv } from '../utils/index'
 
 const NATIVE_TOKEN = '0x4200000000000000000000000000000000000006'
 const WETH_ADDRESS = '0x4200000000000000000000000000000000000006'
-const USDC_WETH_03_POOL = '0x3241738149b24c9164da14fa2040159ffc6dd237'
+const USDC_WETH_03_POOL = '0x478946bcd4a5a22b316470f5486fafb928c0ba25'
 
 // token where amounts should contribute to tracked volume and liquidity
 // usually tokens that many tokens are paired with s

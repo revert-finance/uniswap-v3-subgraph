@@ -20,7 +20,7 @@ import {
   updateTokenHourData,
   updateUniswapDayData
 } from '../utils/intervalUpdates'
-import { createTick, feeTierToTickSpacing } from '../utils/tick'
+import { createTick } from '../utils/tick'
 
 export function handleInitialize(event: Initialize): void {
   // update pool sqrt price and tick
@@ -322,8 +322,9 @@ export function handleSwap(event: SwapEvent): void {
   let amountTotalETHTracked = safeDiv(amountTotalUSDTracked, bundle.ethPriceUSD)
   let amountTotalUSDUntracked = amount0USD.plus(amount1USD).div(BigDecimal.fromString('2'))
 
-  let feesETH = amountTotalETHTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
-  let feesUSD = amountTotalUSDTracked.times(pool.feeTier.toBigDecimal()).div(BigDecimal.fromString('1000000'))
+
+  let feesETH = amountTotalETHTracked.times(new BigDecimal(pool.feeTier)).div(BigDecimal.fromString('1000000'))
+  let feesUSD = amountTotalUSDTracked.times(new BigDecimal(pool.feeTier)).div(BigDecimal.fromString('1000000'))
 
   // global updates
   factory.txCount = factory.txCount.plus(ONE_BI)
@@ -478,7 +479,7 @@ export function handleSwap(event: SwapEvent): void {
 
   // Update inner vars of current or crossed ticks
   let newTick = pool.tick!
-  let tickSpacing = feeTierToTickSpacing(pool.feeTier)
+  let tickSpacing = pool.tickSpacing
   let modulo = newTick.mod(tickSpacing)
   if (modulo.equals(ZERO_BI)) {
     // Current tick is initialized and needs to be updated
