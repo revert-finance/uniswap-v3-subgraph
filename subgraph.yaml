@@ -2,7 +2,7 @@ specVersion: 1.2.0
 description: Uniswap is a decentralized protocol for automated token exchange on Ethereum.
 graft:
   base: Qma7dRgmwaGyXPYPG8PAB7PhXt3X48TSQAmvmhciz3PDEW
-  block: 123426077
+  block: 123408488
 repository: https://github.com/Uniswap/uniswap-v3-subgraph
 schema:
   file: ./schema.graphql
