@@ -86,8 +86,8 @@ export function populateEmptyPools(event: ethereum.Event): void {
     // create token entities if needed
     populateToken(token0Address.toHexString())
     populateToken(token1Address.toHexString())
-    let token0 = Token.load(token0Address.toHexString())
-    let token1 = Token.load(token1Address.toHexString())
+    let token0 = Token.load(token0Address.toHexString())!
+    let token1 = Token.load(token1Address.toHexString())!
 
     if (WHITELIST_TOKENS.includes(pool.token0)) {
       let newPools = token1.whitelistPools
