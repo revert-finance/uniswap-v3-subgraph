@@ -19,12 +19,10 @@ export let WHITELIST_TOKENS: string[] = [
 let MINIMUM_ETH_LOCKED = BigDecimal.fromString('0.01')
 
 let Q192 = BigInt.fromI32(2).pow(192).toBigDecimal()
-
 export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, token1: Token): BigDecimal[] {
   let num = sqrtPriceX96.times(sqrtPriceX96).toBigDecimal()
-  let denom = BigDecimal.fromString(Q192.toString())
   let price1 = num
-    .div(denom)
+    .div(Q192)
     .times(exponentToBigDecimal(token0.decimals))
     .div(exponentToBigDecimal(token1.decimals))
 
@@ -32,7 +30,9 @@ export function sqrtPriceX96ToTokenPrices(sqrtPriceX96: BigInt, token0: Token, t
   return [price0, price1]
 }
 
-// weird blocks https://explorer.offchainlabs.com/tx/0x1c295207effcdaa54baa7436068c57448ff8ace855b8d6f3f9c424b4b7603960
+export function getNativePriceInETH(): BigDecimal {
+  return ONE_BD
+}
 
 export function getEthPriceInUSD(): BigDecimal {
   // fetch eth prices for each stablecoin

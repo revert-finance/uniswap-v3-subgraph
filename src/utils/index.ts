@@ -87,7 +87,11 @@ export function loadTransaction(event: ethereum.Event): Transaction {
   }
   transaction.blockNumber = event.block.number
   transaction.timestamp = event.block.timestamp
-  transaction.gasUsed = event.transaction.gasLimit
+  if (event.receipt) {
+    transaction.gasUsed = event.receipt!.gasUsed
+  } else {
+    transaction.gasUsed = ZERO_BI
+  }
   transaction.gasPrice = event.transaction.gasPrice
   transaction.save()
   return transaction as Transaction

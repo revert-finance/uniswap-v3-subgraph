@@ -1,9 +1,9 @@
-specVersion: 0.0.4
+specVersion: 1.2.0
 description: Uniswap is a decentralized protocol for automated token exchange on Ethereum.
-repository: https://github.com/Uniswap/uniswap-v3-subgraph
 graft:
   base: QmTTXzn6iBcAX2Z72yJw6e64yfCX6c5HcTpKaRacfTLa7g
-  block: 15756499
+  block: 17873575
+repository: https://github.com/Uniswap/uniswap-v3-subgraph
 schema:
   file: ./schema.graphql
 features:
@@ -19,7 +19,7 @@ dataSources:
       startBlock: 1371680
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/factory.ts
       entities:
@@ -48,7 +48,7 @@ dataSources:
       startBlock: 1371714
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/position-manager.ts
       entities:
@@ -66,12 +66,20 @@ dataSources:
       eventHandlers:
         - event: IncreaseLiquidity(indexed uint256,uint128,uint256,uint256)
           handler: handleIncreaseLiquidity
+          calls:
+            positions: NonfungiblePositionManager[event.address].positions(event.params.tokenId)
         - event: DecreaseLiquidity(indexed uint256,uint128,uint256,uint256)
           handler: handleDecreaseLiquidity
+          calls:
+            positions: NonfungiblePositionManager[event.address].positions(event.params.tokenId)
         - event: Collect(indexed uint256,address,uint256,uint256)
           handler: handleCollect
+          calls:
+            positions: NonfungiblePositionManager[event.address].positions(event.params.tokenId)
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
+          calls:
+            positions: NonfungiblePositionManager[event.address].positions(event.params.tokenId)
 templates:
   - kind: ethereum/contract
     name: Pool
@@ -80,7 +88,7 @@ templates:
       abi: Pool
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/core.ts
       entities:
@@ -98,9 +106,24 @@ templates:
           handler: handleInitialize
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+          calls:
+            feeGrowthGlobal0X128: Pool[event.address].feeGrowthGlobal0X128()
+            feeGrowthGlobal1X128: Pool[event.address].feeGrowthGlobal1X128()
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
+          receipt: true
+          calls:
+            poolTickLower: Pool[event.address].ticks(event.params.tickLower)
+            poolTickUpper: Pool[event.address].ticks(event.params.tickUpper)
         - event: Burn(indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleBurn
+          receipt: true
+          calls:
+            poolTickLower: Pool[event.address].ticks(event.params.tickLower)
+            poolTickUpper: Pool[event.address].ticks(event.params.tickUpper)
         - event: Flash(indexed address,indexed address,uint256,uint256,uint256,uint256)
           handler: handleFlash
+          receipt: true
+          calls:
+            feeGrowthGlobal0X128: Pool[event.address].feeGrowthGlobal0X128()
+            feeGrowthGlobal1X128: Pool[event.address].feeGrowthGlobal1X128()

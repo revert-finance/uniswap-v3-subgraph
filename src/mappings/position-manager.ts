@@ -10,6 +10,7 @@ import { Bundle, Position, PositionSnapshot, Token } from '../types/schema'
 import { ADDRESS_ZERO, factoryContract, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { Address, BigInt, ethereum } from '@graphprotocol/graph-ts'
 import { convertTokenToDecimal, loadTransaction } from '../utils'
+import { getNativePriceInETH } from '../utils/pricing'
 
 function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
   let position = Position.load(tokenId.toString())
@@ -17,10 +18,7 @@ function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
     let contract = NonfungiblePositionManager.bind(event.address)
     let positionCall = contract.try_positions(tokenId)
 
-    // the following call reverts in situations where the position is minted
-    // and deleted in the same block - from my investigation this happens
-    // in calls from  BancorSwap
-    // (e.g. 0xf7867fa19aa65298fadb8d4f72d0daed5e836f3ba01f0b9b9631cdc6c36bed40)
+
     if (!positionCall.reverted) {
       let positionResult = positionCall.value
       let poolAddress = factoryContract.getPool(positionResult.value2, positionResult.value3, positionResult.value4)
@@ -61,7 +59,7 @@ function updateFeeVars(position: Position, event: ethereum.Event, tokenId: BigIn
   return position
 }
 
-function savePositionSnapshot(position: Position, event: ethereum.Event): void {
+function savePositionSnapshot(position: Position, event: ethereum.Event, bundle: Bundle, token0: Token, token1: Token): void {
   let positionSnapshot = new PositionSnapshot(position.id.concat('#').concat(event.block.number.toString()))
   positionSnapshot.owner = position.owner
   positionSnapshot.pool = position.pool
@@ -78,6 +76,10 @@ function savePositionSnapshot(position: Position, event: ethereum.Event): void {
   positionSnapshot.transaction = loadTransaction(event).id
   positionSnapshot.feeGrowthInside0LastX128 = position.feeGrowthInside0LastX128
   positionSnapshot.feeGrowthInside1LastX128 = position.feeGrowthInside1LastX128
+  positionSnapshot.ethPriceUSD = bundle.ethPriceUSD
+  positionSnapshot.derivedETHToken0 = token0.derivedETH
+  positionSnapshot.derivedETHToken1 = token1.derivedETH
+  positionSnapshot.derivedETHNative = getNativePriceInETH()
   positionSnapshot.save()
 }
 
@@ -99,6 +101,8 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
     return
   }
 
+  let bundle = Bundle.load('1')!
+
   let token0 = Token.load(position.token0)!
   let token1 = Token.load(position.token1)!
 
@@ -109,14 +113,13 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
   position.depositedToken0 = position.depositedToken0.plus(amount0)
   position.depositedToken1 = position.depositedToken1.plus(amount1)
 
-  updateFeeVars(position, event, event.params.tokenId)
-
+  position = updateFeeVars(position, event, event.params.tokenId)
   position.save()
-
-  savePositionSnapshot(position, event)
+  savePositionSnapshot(position, event, bundle, token0, token1)
 }
 
 export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
+  
   // temp fix
   if (event.block.number == BigInt.fromI32(14317993)) {
     return
@@ -134,6 +137,7 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
     return
   }
 
+  let bundle = Bundle.load('1')!
   let token0 = Token.load(position.token0)!
   let token1 = Token.load(position.token1)!
   let amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals)
@@ -145,12 +149,11 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
 
   position = updateFeeVars(position, event, event.params.tokenId)
   position.save()
-  savePositionSnapshot(position, event)
+  savePositionSnapshot(position, event, bundle, token0, token1)
 }
 
 export function handleCollect(event: Collect): void {
   let position = getPosition(event, event.params.tokenId)
-
   // position was not able to be fetched
   if (position == null) {
     return
@@ -161,6 +164,7 @@ export function handleCollect(event: Collect): void {
     return
   }
 
+  let bundle = Bundle.load('1')!
   let token0 = Token.load(position.token0)!
   let token1 = Token.load(position.token1)!
   let amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals)
@@ -172,22 +176,21 @@ export function handleCollect(event: Collect): void {
   position.collectedFeesToken1 = position.collectedToken1.minus(position.withdrawnToken1)
 
   position = updateFeeVars(position, event, event.params.tokenId)
-
   position.save()
-
-  savePositionSnapshot(position, event)
+  savePositionSnapshot(position, event, bundle, token0, token1)
 }
 
 export function handleTransfer(event: Transfer): void {
   let position = getPosition(event, event.params.tokenId)
-
   // position was not able to be fetched
-  if (position == null) {
+  if (position === null) {
     return
   }
-
   position.owner = event.params.to
   position.save()
 
-  savePositionSnapshot(position, event)
+  let bundle = Bundle.load('1')!
+  let token0 = Token.load(position.token0)!
+  let token1 = Token.load(position.token1)!
+  savePositionSnapshot(position, event, bundle, token0, token1)
 }
