@@ -1,9 +1,9 @@
-specVersion: 0.0.4
+specVersion: 1.2.0
 description: Uniswap is a decentralized protocol for automated token exchange on Ethereum.
 repository: https://github.com/Uniswap/uniswap-v3-subgraph
-graft:
-  base: QmTTXzn6iBcAX2Z72yJw6e64yfCX6c5HcTpKaRacfTLa7g
-  block: 19852000
+# graft:
+#   base: QmTTXzn6iBcAX2Z72yJw6e64yfCX6c5HcTpKaRacfTLa7g
+#   block: 19852000
 schema:
   file: ./schema.graphql
 features:
@@ -16,10 +16,10 @@ dataSources:
     source:
       address: '0x33128a8fC17869897dcE68Ed026d694621f6FDfD'
       abi: Factory
-      startBlock: 1371680
+      startBlock: 2009445
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/factory.ts
       entities:
@@ -39,6 +39,15 @@ dataSources:
       eventHandlers:
         - event: PoolCreated(indexed address,indexed address,indexed uint24,int24,address)
           handler: handlePoolCreated
+          calls:
+            symbol1: ERC20SymbolBytes[event.params.token0].symbol()
+            name1: ERC20NameBytes[event.params.token0].name()
+            totalSupply1: ERC20[event.params.token0].totalSupply()
+            decimals1: ERC20[event.params.token0].decimals()
+            symbol2: ERC20SymbolBytes[event.params.token1].symbol()
+            name2: ERC20NameBytes[event.params.token1].name()
+            totalSupply2: ERC20[event.params.token1].totalSupply()
+            decimals2: ERC20[event.params.token1].decimals()
         - event: FeeAmountEnabled(indexed uint24,indexed int24)
           handler: handleFeeAmountEnabled
       
@@ -48,10 +57,10 @@ dataSources:
     source:
       address: '0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1'
       abi: NonfungiblePositionManager
-      startBlock: 1371714
+      startBlock: 2009445
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/position-manager.ts
       entities:
@@ -69,12 +78,20 @@ dataSources:
       eventHandlers:
         - event: IncreaseLiquidity(indexed uint256,uint128,uint256,uint256)
           handler: handleIncreaseLiquidity
+          calls:
+            positionsCall: NonfungiblePositionManager[event.address].positions(event.params.tokenId)
         - event: DecreaseLiquidity(indexed uint256,uint128,uint256,uint256)
           handler: handleDecreaseLiquidity
+          calls:
+            positionsCall: NonfungiblePositionManager[event.address].positions(event.params.tokenId)
         - event: Collect(indexed uint256,address,uint256,uint256)
           handler: handleCollect
+          calls:
+            positionsCall: NonfungiblePositionManager[event.address].positions(event.params.tokenId)
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
+          calls:
+            positionsCall: NonfungiblePositionManager[event.address].positions(event.params.tokenId)
 templates:
   - kind: ethereum/contract
     name: Pool
@@ -83,7 +100,7 @@ templates:
       abi: Pool
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/core.ts
       entities:

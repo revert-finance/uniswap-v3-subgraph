@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
 import { Bundle, Burn, Factory, Mint, Pool, Swap, Tick, Token } from '../types/schema'
 import { Pool as PoolABI } from '../types/Factory/Pool'
-import { BigDecimal, BigInt, ethereum, Address } from '@graphprotocol/graph-ts'
+import { BigDecimal, BigInt, ethereum, Address, Bytes } from '@graphprotocol/graph-ts'
 import {
   Burn as BurnEvent,
   Flash as FlashEvent,
@@ -24,7 +24,7 @@ import { createTick, feeTierToTickSpacing } from '../utils/tick'
 
 export function handleInitialize(event: Initialize): void {
   // update pool sqrt price and tick
-  let pool = Pool.load(event.address.toHexString())!
+  let pool = Pool.load(event.address)!
   pool.sqrtPrice = event.params.sqrtPriceX96
   pool.tick = BigInt.fromI32(event.params.tick)
   pool.save()
@@ -34,8 +34,8 @@ export function handleInitialize(event: Initialize): void {
   let token1 = Token.load(pool.token1)!
 
   // update ETH price now that prices could have changed
-  let bundle = Bundle.load('1')!
-  bundle.ethPriceUSD = getEthPriceInUSD()
+  let bundle = Bundle.load(Bytes.fromI32(1))!
+  bundle.ethPriceUSD = getEthPriceInUSD(event.block.number)
   bundle.save()
 
   updatePoolDayData(event)
@@ -49,8 +49,8 @@ export function handleInitialize(event: Initialize): void {
 }
 
 export function handleMint(event: MintEvent): void {
-  let bundle = Bundle.load('1')!
-  let poolAddress = event.address.toHexString()
+  let bundle = Bundle.load(Bytes.fromI32(1))!
+  let poolAddress = event.address
   let pool = Pool.load(poolAddress)!
   let factory = Factory.load(FACTORY_ADDRESS)!
 
@@ -85,7 +85,7 @@ export function handleMint(event: MintEvent): void {
   // Pools liquidity tracks the currently active liquidity given pools current tick.
   // We only want to update it on mint if the new position includes the current tick.
   if (
-    pool.tick !== null &&
+    pool.tick &&
     BigInt.fromI32(event.params.tickLower).le(pool.tick as BigInt) &&
     BigInt.fromI32(event.params.tickUpper).gt(pool.tick as BigInt)
   ) {
@@ -104,7 +104,7 @@ export function handleMint(event: MintEvent): void {
   factory.totalValueLockedUSD = factory.totalValueLockedETH.times(bundle.ethPriceUSD)
 
   let transaction = loadTransaction(event)
-  let mint = new Mint(transaction.id.toString() + '#' + pool.txCount.toString())
+  let mint = new Mint(transaction.id.concatI32(event.logIndex.toI32()))
   mint.transaction = transaction.id
   mint.timestamp = transaction.timestamp
   mint.pool = pool.id
@@ -125,17 +125,17 @@ export function handleMint(event: MintEvent): void {
   let lowerTickIdx = event.params.tickLower
   let upperTickIdx = event.params.tickUpper
 
-  let lowerTickId = poolAddress + '#' + BigInt.fromI32(event.params.tickLower).toString()
-  let upperTickId = poolAddress + '#' + BigInt.fromI32(event.params.tickUpper).toString()
+  let lowerTickId = poolAddress.concatI32(event.params.tickLower)
+  let upperTickId = poolAddress.concatI32(event.params.tickUpper)
 
   let lowerTick = Tick.load(lowerTickId)
   let upperTick = Tick.load(upperTickId)
 
-  if (lowerTick === null) {
+  if (!lowerTick) {
     lowerTick = createTick(lowerTickId, lowerTickIdx, pool.id, event)
   }
 
-  if (upperTick === null) {
+  if (!upperTick) {
     upperTick = createTick(upperTickId, upperTickIdx, pool.id, event)
   }
 
@@ -168,8 +168,8 @@ export function handleMint(event: MintEvent): void {
 }
 
 export function handleBurn(event: BurnEvent): void {
-  let bundle = Bundle.load('1')!
-  let poolAddress = event.address.toHexString()
+  let bundle = Bundle.load(Bytes.fromI32(1))!
+  let poolAddress = event.address
   let pool = Pool.load(poolAddress)!
   let factory = Factory.load(FACTORY_ADDRESS)!
 
@@ -203,7 +203,7 @@ export function handleBurn(event: BurnEvent): void {
   // Pools liquidity tracks the currently active liquidity given pools current tick.
   // We only want to update it on burn if the position being burnt includes the current tick.
   if (
-    pool.tick !== null &&
+    pool.tick &&
     BigInt.fromI32(event.params.tickLower).le(pool.tick as BigInt) &&
     BigInt.fromI32(event.params.tickUpper).gt(pool.tick as BigInt)
   ) {
@@ -223,7 +223,7 @@ export function handleBurn(event: BurnEvent): void {
 
   // burn entity
   let transaction = loadTransaction(event)
-  let burn = new Burn(transaction.id + '#' + pool.txCount.toString())
+  let burn = new Burn(transaction.id.concatI32(event.logIndex.toI32()))
   burn.transaction = transaction.id
   burn.timestamp = transaction.timestamp
   burn.pool = pool.id
@@ -240,8 +240,8 @@ export function handleBurn(event: BurnEvent): void {
   burn.logIndex = event.logIndex
 
   // tick entities
-  let lowerTickId = poolAddress + '#' + BigInt.fromI32(event.params.tickLower).toString()
-  let upperTickId = poolAddress + '#' + BigInt.fromI32(event.params.tickUpper).toString()
+  let lowerTickId = poolAddress.concatI32(event.params.tickLower)
+  let upperTickId = poolAddress.concatI32(event.params.tickUpper)
   let lowerTick = Tick.load(lowerTickId)!
   let upperTick = Tick.load(upperTickId)!
   let amount = event.params.amount
@@ -268,12 +268,12 @@ export function handleBurn(event: BurnEvent): void {
 }
 
 export function handleSwap(event: SwapEvent): void {
-  let bundle = Bundle.load('1')!
+  let bundle = Bundle.load(Bytes.fromI32(1))!
   let factory = Factory.load(FACTORY_ADDRESS)!
-  let pool = Pool.load(event.address.toHexString())!
-
+  let pool = Pool.load(event.address)!
+  if(pool)
   // hot fix for bad pricing
-  if (pool.id == '0x9663f2ca0454accad3e094448ea6f77443880454') {
+  if (pool.id == Address.fromString('0x9663f2ca0454accad3e094448ea6f77443880454')) {
     return
   }
 
@@ -294,7 +294,7 @@ export function handleSwap(event: SwapEvent): void {
     }
   }
 
-  let oldTick = pool.tick!
+  let oldTick = pool.tick
 
   // amounts - 0/1 are token deltas: can be positive or negative
   let amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals)
@@ -375,7 +375,7 @@ export function handleSwap(event: SwapEvent): void {
   pool.save()
 
   // update USD pricing
-  bundle.ethPriceUSD = getEthPriceInUSD()
+  bundle.ethPriceUSD = getEthPriceInUSD(event.block.number)
   bundle.save()
   token0.derivedETH = findEthPerToken(token0 as Token, token1 as Token)
   token1.derivedETH = findEthPerToken(token1 as Token, token0 as Token)
@@ -396,7 +396,7 @@ export function handleSwap(event: SwapEvent): void {
 
   // create Swap event
   let transaction = loadTransaction(event)
-  let swap = new Swap(transaction.id + '#' + pool.txCount.toString())
+  let swap = new Swap(transaction.id.concatI32(event.logIndex.toI32()))
   swap.transaction = transaction.id
   swap.timestamp = transaction.timestamp
   swap.pool = pool.id
@@ -477,7 +477,8 @@ export function handleSwap(event: SwapEvent): void {
   token1.save()
 
   // Update inner vars of current or crossed ticks
-  let newTick = pool.tick!
+  let newTick = pool.tick
+  if(newTick && oldTick){
   let tickSpacing = feeTierToTickSpacing(pool.feeTier)
   let modulo = newTick.mod(tickSpacing)
   if (modulo.equals(ZERO_BI)) {
@@ -485,33 +486,34 @@ export function handleSwap(event: SwapEvent): void {
     loadTickUpdateFeeVarsAndSave(newTick.toI32(), event)
   }
 
-  let numIters = oldTick
-    .minus(newTick)
-    .abs()
-    .div(tickSpacing)
+    let numIters = oldTick
+      .minus(newTick)
+      .abs()
+      .div(tickSpacing)
 
-  if (numIters.gt(BigInt.fromI32(100))) {
-    // In case more than 100 ticks need to be updated ignore the update in
-    // order to avoid timeouts. From testing this behavior occurs only upon
-    // pool initialization. This should not be a big issue as the ticks get
-    // updated later. For early users this error also disappears when calling
-    // collect
-  } else if (newTick.gt(oldTick)) {
-    let firstInitialized = oldTick.plus(tickSpacing.minus(modulo))
-    for (let i = firstInitialized; i.le(newTick); i = i.plus(tickSpacing)) {
-      loadTickUpdateFeeVarsAndSave(i.toI32(), event)
+    if (numIters.gt(BigInt.fromI32(100))) {
+      // In case more than 100 ticks need to be updated ignore the update in
+      // order to avoid timeouts. From testing this behavior occurs only upon
+      // pool initialization. This should not be a big issue as the ticks get
+      // updated later. For early users this error also disappears when calling
+      // collect
+    } else if (newTick.gt(oldTick)) {
+      let firstInitialized = oldTick.plus(tickSpacing.minus(modulo))
+      for (let i = firstInitialized; i.le(newTick); i = i.plus(tickSpacing)) {
+        loadTickUpdateFeeVarsAndSave(i.toI32(), event)
+      }
+    } else if (newTick.lt(oldTick)) {
+      let firstInitialized = oldTick.minus(modulo)
+      for (let i = firstInitialized; i.ge(newTick); i = i.minus(tickSpacing)) {
+        loadTickUpdateFeeVarsAndSave(i.toI32(), event)
+      }
     }
-  } else if (newTick.lt(oldTick)) {
-    let firstInitialized = oldTick.minus(modulo)
-    for (let i = firstInitialized; i.ge(newTick); i = i.minus(tickSpacing)) {
-      loadTickUpdateFeeVarsAndSave(i.toI32(), event)
-    }
-  }
+}
 }
 
 export function handleFlash(event: FlashEvent): void {
   // update fee growth
-  let pool = Pool.load(event.address.toHexString())!
+  let pool = Pool.load(event.address)!
   let poolContract = PoolABI.bind(event.address)
   let feeGrowthGlobal0X128 = poolContract.feeGrowthGlobal0X128()
   let feeGrowthGlobal1X128 = poolContract.feeGrowthGlobal1X128()
@@ -536,34 +538,53 @@ function loadTickUpdateFeeVarsAndSave(tickId: i32, event: ethereum.Event): void 
   let poolAddress = event.address
   let tick = Tick.load(
     poolAddress
-      .toHexString()
-      .concat('#')
-      .concat(tickId.toString())
+      .concatI32(tickId)
   )
-  if (tick !== null) {
+  if (tick) {
     updateTickFeeVarsAndSave(tick, event)
   }
 }
 
 function addMissingWhitelistedPools(token:Token): void {
   const addressUSDC = Address.fromString("0x833589fcd6edb6e08f4c7c32d4f71b54bda02913")
-  const tokenAddress = Address.fromString(token.id)
-  if (!addressUSDC.equals(tokenAddress)) {
-    let address100 = factoryContract.getPool(addressUSDC, tokenAddress, 100)
-    let address500 = factoryContract.getPool(addressUSDC, tokenAddress, 500)
-    let address3000 = factoryContract.getPool(addressUSDC, tokenAddress, 3000)
-    let address10000 = factoryContract.getPool(addressUSDC, tokenAddress, 10000)
-    if (!address100.equals(Address.fromString(ADDRESS_ZERO))) {
-      token.whitelistPools.push(address100.toHexString())
+  const tokenAddress = Address.fromBytes(token.id)
+  let tokenWhitelistPools = token.whitelistPools;
+  let updated = false;
+  if (!addressUSDC.notEqual(tokenAddress)) {
+    let address100call = factoryContract.try_getPool(addressUSDC, tokenAddress, 100)
+    let address500call = factoryContract.try_getPool(addressUSDC, tokenAddress, 500)
+    let address3000call = factoryContract.try_getPool(addressUSDC, tokenAddress, 3000)
+    let address10000call = factoryContract.try_getPool(addressUSDC, tokenAddress, 10000)
+    if(!address100call.reverted){
+      if (address100call.value.notEqual(Address.zero())) {
+        tokenWhitelistPools.push(address100call.value)
+        updated = true;
+      }
     }
-    if (!address500.equals(Address.fromString(ADDRESS_ZERO))) {
-      token.whitelistPools.push(address500.toHexString())
+    if(!address500call.reverted){
+      if (address500call.value.notEqual(Address.zero())) {
+        tokenWhitelistPools.push(address500call.value)
+        updated = true;
+      }
     }
-    if (!address3000.equals(Address.fromString(ADDRESS_ZERO))) {
-      token.whitelistPools.push(address3000.toHexString())
+    
+    if(!address3000call.reverted){
+      if (address3000call.value.notEqual(Address.zero())) {
+        tokenWhitelistPools.push(address3000call.value)
+        updated = true;
+      }
     }
-    if (!address10000.equals(Address.fromString(ADDRESS_ZERO))) {
-      token.whitelistPools.push(address10000.toHexString())
+    if(!address10000call.reverted){
+      if (address10000call.value.notEqual(Address.zero())) {
+        tokenWhitelistPools.push(address10000call.value)
+        updated = true;
+      }
     }
+
+    if(updated){
+      token.whitelistPools = tokenWhitelistPools
+      token.save()
+    }
+    
   }
 }

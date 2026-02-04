@@ -6,23 +6,23 @@ import { FeeAmountEnabled, PoolCreated } from '../types/Factory/Factory'
 import { Pool, Token, Bundle } from '../types/schema'
 import { Pool as PoolTemplate } from '../types/templates'
 import { fetchTokenSymbol, fetchTokenName, fetchTokenTotalSupply, fetchTokenDecimals } from '../utils/token'
-import { log, BigInt, Address } from '@graphprotocol/graph-ts'
+import { log, BigInt, Address, Bytes } from '@graphprotocol/graph-ts'
 
 export function handleFeeAmountEnabled(event: FeeAmountEnabled): void {
-  let fts = new FeeTierToTickSpacing(event.params.fee.toString())
+  let fts = new FeeTierToTickSpacing(Bytes.fromI32(event.params.fee))
   fts.tickSpacing = BigInt.fromI32(event.params.tickSpacing)
   fts.save()
 }
 
 export function handlePoolCreated(event: PoolCreated): void {
-  // temp fix
-  if (event.params.pool == Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248')) {
-    return
-  }
+  // // temp fix
+  // if (event.params.pool == Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248')) {
+  //   return
+  // }
 
   // load factory
   let factory = Factory.load(FACTORY_ADDRESS)
-  if (factory === null) {
+  if (!factory) {
     factory = new Factory(FACTORY_ADDRESS)
     factory.poolCount = ZERO_BI
     factory.totalVolumeETH = ZERO_BD
@@ -38,27 +38,27 @@ export function handlePoolCreated(event: PoolCreated): void {
     factory.owner = ADDRESS_ZERO
 
     // create new bundle for tracking eth price
-    let bundle = new Bundle('1')
+    let bundle = new Bundle(Bytes.fromI32(1))
     bundle.ethPriceUSD = ZERO_BD
     bundle.save()
   }
 
   factory.poolCount = factory.poolCount.plus(ONE_BI)
 
-  let pool = new Pool(event.params.pool.toHexString()) as Pool
-  let token0 = Token.load(event.params.token0.toHexString())
-  let token1 = Token.load(event.params.token1.toHexString())
+  let pool = new Pool(event.params.pool) as Pool
+  let token0 = Token.load(event.params.token0)
+  let token1 = Token.load(event.params.token1)
 
   // fetch info if null
-  if (token0 === null) {
-    token0 = new Token(event.params.token0.toHexString())
+  if (!token0) {
+    token0 = new Token(event.params.token0)
     token0.symbol = fetchTokenSymbol(event.params.token0)
     token0.name = fetchTokenName(event.params.token0)
     token0.totalSupply = fetchTokenTotalSupply(event.params.token0)
     let decimals = fetchTokenDecimals(event.params.token0)
 
     // bail if we couldn't figure out the decimals
-    if (decimals === null) {
+    if (!decimals) {
       log.debug('mybug the decimal on token 0 was null', [])
       return
     }
@@ -77,14 +77,14 @@ export function handlePoolCreated(event: PoolCreated): void {
     token0.whitelistPools = []
   }
 
-  if (token1 === null) {
-    token1 = new Token(event.params.token1.toHexString())
+  if (!token1) {
+    token1 = new Token(event.params.token1)
     token1.symbol = fetchTokenSymbol(event.params.token1)
     token1.name = fetchTokenName(event.params.token1)
     token1.totalSupply = fetchTokenTotalSupply(event.params.token1)
     let decimals = fetchTokenDecimals(event.params.token1)
     // bail if we couldn't figure out the decimals
-    if (decimals === null) {
+    if (!decimals) {
       log.debug('mybug the decimal on token 0 was null', [])
       return
     }
@@ -103,12 +103,12 @@ export function handlePoolCreated(event: PoolCreated): void {
   }
 
   // update white listed pools
-  if (WHITELIST_TOKENS.includes(token0.id)) {
+  if (WHITELIST_TOKENS.includes(token0.id.toHexString())) {
     let newPools = token1.whitelistPools
     newPools.push(pool.id)
     token1.whitelistPools = newPools
   }
-  if (WHITELIST_TOKENS.includes(token1.id)) {
+  if (WHITELIST_TOKENS.includes(token1.id.toHexString())) {
     let newPools = token0.whitelistPools
     newPools.push(pool.id)
     token0.whitelistPools = newPools

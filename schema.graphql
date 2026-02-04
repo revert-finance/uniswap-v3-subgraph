@@ -1,6 +1,6 @@
 type Factory @entity {
   # factory address
-  id: ID!
+  id: Bytes!
   # amount of pools created
   poolCount: BigInt!
   # amoutn of transactions all time
@@ -28,21 +28,21 @@ type Factory @entity {
   owner: ID!
 }
 
-type FeeTierToTickSpacing @entity {
-  id: ID!
+type FeeTierToTickSpacing @entity(immutable:true) {
+  id: Bytes!
   tickSpacing: BigInt!
 }
 
 # stores for USD calculations
 type Bundle @entity {
-  id: ID!
+  id: Bytes!
   # price of ETH in usd
   ethPriceUSD: BigDecimal!
 }
 
 type Token @entity {
   # token address
-  id: ID!
+  id: Bytes!
   # token symbol
   symbol: String!
   # token name
@@ -80,7 +80,7 @@ type Token @entity {
 
 type Pool @entity {
   # pool address
-  id: ID!
+  id: Bytes!
   # creation
   createdAtTimestamp: BigInt!
   # block pool was created at
@@ -151,7 +151,7 @@ type Pool @entity {
 
 type Tick @entity {
   # format: <pool address>#<tick index>
-  id: ID!
+  id: Bytes!
   # pool address
   poolAddress: String
   # tick index
@@ -198,7 +198,7 @@ type Tick @entity {
 type Position @entity {
   # Positions created through NonfungiblePositionManager
   # NFT token id
-  id: ID!
+  id: Bytes!
   # owner of the NFT
   owner: Bytes!
   # pool position is within
@@ -236,9 +236,9 @@ type Position @entity {
   feeGrowthInside1LastX128: BigInt!
 }
 
-type PositionSnapshot @entity {
+type PositionSnapshot @entity(immutable:true) {
   # <NFT token id>#<block number>
-  id: ID!
+  id: Bytes!
   # owner of the NFT
   owner: Bytes!
   # pool the position is within
@@ -270,9 +270,9 @@ type PositionSnapshot @entity {
   feeGrowthInside1LastX128: BigInt!
 }
 
-type Transaction @entity {
+type Transaction @entity(immutable:true) {
   # txn hash
-  id: ID!
+  id: Bytes!
   # block txn was included in
   blockNumber: BigInt!
   # timestamp txn was confirmed
@@ -288,9 +288,21 @@ type Transaction @entity {
   collects: [Collect]! @derivedFrom(field: "transaction")
 }
 
-type Mint @entity {
+interface Event {
   # transaction hash + "#" + index in mints Transaction array
-  id: ID!
+  id: Bytes!
+  # which txn the mint was included in
+  transaction: Transaction!
+  # time of txn
+  timestamp: BigInt!
+  # pool position is within
+  pool: Pool!
+  # allow indexing by tokens
+}
+
+type Mint implements Event @entity(immutable: true) {
+  # transaction hash + "#" + index in mints Transaction array
+  id: Bytes!
   # which txn the mint was included in
   transaction: Transaction!
   # time of txn
@@ -323,9 +335,9 @@ type Mint @entity {
   logIndex: BigInt
 }
 
-type Burn @entity {
+type Burn implements Event @entity(immutable: true) {
   # transaction hash + "#" + index in mints Transaction array
-  id: ID!
+  id: Bytes!
   # txn burn was included in
   transaction: Transaction!
   # pool position is within
@@ -356,9 +368,9 @@ type Burn @entity {
   logIndex: BigInt
 }
 
-type Swap @entity {
+type Swap implements Event @entity(immutable: true) {
   # transaction hash + "#" + index in swaps Transaction array
-  id: ID!
+  id: Bytes!
   # pointer to transaction
   transaction: Transaction!
   # timestamp of transaction
@@ -389,9 +401,9 @@ type Swap @entity {
   logIndex: BigInt
 }
 
-type Collect @entity {
+type Collect implements Event @entity(immutable: true) {
   # transaction hash + "#" + index in collect Transaction array
-  id: ID!
+  id: Bytes!
   # pointer to txn
   transaction: Transaction!
   # timestamp of event
@@ -414,9 +426,9 @@ type Collect @entity {
   logIndex: BigInt
 }
 
-type Flash @entity {
+type Flash implements Event @entity(immutable: true){
   # transaction hash + "-" + index in collect Transaction array
-  id: ID!
+  id: Bytes!
   # pointer to txn
   transaction: Transaction!
   # timestamp of event

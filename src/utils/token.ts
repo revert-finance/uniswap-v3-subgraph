@@ -10,7 +10,7 @@ export function fetchTokenSymbol(tokenAddress: Address): string {
 
   // try with the static definition
   let staticTokenDefinition = StaticTokenDefinition.fromAddress(tokenAddress)
-  if(staticTokenDefinition != null) {
+  if(staticTokenDefinition) {
     return staticTokenDefinition.symbol
   }
 
@@ -39,7 +39,7 @@ export function fetchTokenName(tokenAddress: Address): string {
 
    // try with the static definition
    let staticTokenDefinition = StaticTokenDefinition.fromAddress(tokenAddress)
-   if(staticTokenDefinition != null) {
+   if(staticTokenDefinition) {
      return staticTokenDefinition.name
    }
 
@@ -89,7 +89,7 @@ export function fetchTokenDecimals(tokenAddress: Address): BigInt {
   } else {
     // try with the static definition
     let staticTokenDefinition = StaticTokenDefinition.fromAddress(tokenAddress)
-    if(staticTokenDefinition != null) {
+    if(staticTokenDefinition) {
       return staticTokenDefinition.decimals
     }
   }

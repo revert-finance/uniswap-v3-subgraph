@@ -1,15 +1,15 @@
 /* eslint-disable prefer-const */
-import { log, BigDecimal, BigInt } from '@graphprotocol/graph-ts'
+import { Bytes, BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { bigDecimalExponated, safeDiv } from '.'
 import { FeeTierToTickSpacing, Tick } from '../types/schema'
 import { Mint as MintEvent } from '../types/templates/Pool/Pool'
 import { ONE_BD, ZERO_BD, ZERO_BI } from './constants'
 
-export function createTick(tickId: string, tickIdx: i32, poolId: string, event: MintEvent): Tick {
+export function createTick(tickId: Bytes, tickIdx: i32, poolId: Bytes, event: MintEvent): Tick {
   let tick = new Tick(tickId)
   tick.tickIdx = BigInt.fromI32(tickIdx)
   tick.pool = poolId
-  tick.poolAddress = poolId
+  tick.poolAddress = poolId.toHexString()
 
   tick.createdAtTimestamp = event.block.timestamp
   tick.createdAtBlockNumber = event.block.number
@@ -64,7 +64,7 @@ export function feeTierToTickSpacing(feeTier: BigInt): BigInt {
   if (feeTier.equals(BigInt.fromI32(100))) {
     return BigInt.fromI32(1)
   }
-  let fts = FeeTierToTickSpacing.load(feeTier.toString())
+  let fts = FeeTierToTickSpacing.load(Bytes.fromI32(feeTier.toI32()))
   if (fts) {
     return fts.tickSpacing
   }
